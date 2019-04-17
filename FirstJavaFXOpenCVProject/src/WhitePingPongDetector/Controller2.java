@@ -109,21 +109,37 @@ public class Controller2 {
                     Mat morhpOutput = new Mat();
 
 
-                    Imgproc.blur(frame, mask, new Size(7,7));
+                    // konverter framet framet til et HSV frame
+                    Imgproc.cvtColor(frame, hsvImage, Imgproc.COLOR_BGR2HSV);
 
+                    // slørre HSV framet
+                    Imgproc.blur(hsvImage, blurredImage, new Size(7,7));
 
+                    Scalar valuesMin = new Scalar(0,150,108);
+                    Scalar valuesMax = new Scalar(180,255,255);
+                    Core.inRange(hsvImage, valuesMin, valuesMax, mask);
+
+                    // opdater billedet oppe til højre i UI
                     this.updateImageView(this.maskImage, Utils.mat2Image(mask));
 
-                    Imgproc.cvtColor(mask, hsvImage, Imgproc.COLOR_BGR2HSV);
 
-                    Scalar valuesMin = new Scalar(180,0,0);
-                    Scalar valuesMax = new Scalar(255,255,255);
+                    // Morphological operators
+                    // Dilate elements of size x*x (gør objekt større)
+                    Mat dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(4,4));
+                    // Erode elements of size x*x (gør objekt mindre)
+                    Mat erodeElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(  10,10));
 
-                    Core.inRange(hsvImage, valuesMin, valuesMax, morhpOutput);
+                    // forstørre elementet x gange
+                    Imgproc.dilate(mask, morhpOutput, dilateElement);
+                    Imgproc.dilate(morhpOutput, morhpOutput, dilateElement);
 
+                    // opdater billedet nede til højre i UI
                     this.updateImageView(this.morphImage, Utils.mat2Image(morhpOutput));
 
 
+
+
+                    /*
 
                     // fjern noget baggrundsstøj ved at slørre framet
                     //Imgproc.blur(frame, blurredImage, new Size(7, 7));
@@ -135,17 +151,11 @@ public class Controller2 {
                     // convert the frame to HLS (HSL)
                     //Imgproc.cvtColor(blurredImage, hslImage, Imgproc.COLOR_BGR2HLS);
 
-
-
-
                     // threshold HSV image to select color (balls)
                     //Core.inRange(blurredImage, valuesMin, valuesMax, mask);
                     // show the partial output
 
-
-
-
-                    // morpholoical operators
+                    // morphological opreators
                     // Dilate elements of size x*x (gør objekt større)
                     //Mat dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(2,2));
                     // Erode elements of size x*x (gør objekt mindre)
@@ -165,10 +175,8 @@ public class Controller2 {
                     //Imgproc.approxPolyDP(morhpOutput, approx, Imgproc.arcLength(morhpOutput, true) * 0.02, true);
 
                     //this.updateImageView(this.morphImage, Utils.mat2Image(mask));
+                    */
 
-
-                    //Imgproc.erode(frame, frame, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(5, 5)));
-                    //Imgproc.cvtColor(frame, frame, Imgproc.COLOR_BGR2GRAY);
                 }
             } catch (Exception e) {
                 System.err.println("Exception under billede udarbejdelse" + e);  // log den fangede error
