@@ -133,6 +133,11 @@ public class Controller2 {
                     Imgproc.dilate(mask, morhpOutput, dilateElement);
                     Imgproc.dilate(morhpOutput, morhpOutput, dilateElement);
 
+                    //findAndDrawRectangles(morhpOutput, morhpOutput);
+
+
+                    Imgproc.Canny(morhpOutput, morhpOutput, 30, 3);
+
                     // opdater billedet nede til højre i UI
                     this.updateImageView(this.morphImage, Utils.mat2Image(morhpOutput));
 
@@ -177,12 +182,31 @@ public class Controller2 {
                     //this.updateImageView(this.morphImage, Utils.mat2Image(mask));
                     */
 
+
                 }
             } catch (Exception e) {
                 System.err.println("Exception under billede udarbejdelse" + e);  // log den fangede error
             }
         }
         return frame;
+    }
+
+    private Mat findAndDrawRectangles(Mat sourceFrame, Mat frame) {
+
+        Mat blurredFrame = new Mat();
+        Imgproc.medianBlur(sourceFrame, blurredFrame, 3);
+
+
+        // lav en rektangel med øverst/venstre vertex at (x,y) med (højde, bredde)
+        Rect rect = new Rect(10, 20, 40, 60);
+
+        int lineThickness = 10;
+        Scalar lineColor = new Scalar(255,0,0);
+
+        // tegn trekanten på billedet med
+        Imgproc.rectangle(sourceFrame,rect ,lineColor, lineThickness);
+
+        return blurredFrame;
     }
 
 

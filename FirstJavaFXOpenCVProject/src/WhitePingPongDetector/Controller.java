@@ -181,7 +181,7 @@ public class Controller {
 
         Imgproc.HoughCircles(maskedImage, circles, Imgproc.HOUGH_GRADIENT, 1.0
                 , (double)maskedImage.rows()/2
-                ,200, 10, 2, 40);
+                ,100, 10, 2, 40);
 
         for (int i=0; i<circles.cols(); i++) {
             double[] c = circles.get(0,i);
