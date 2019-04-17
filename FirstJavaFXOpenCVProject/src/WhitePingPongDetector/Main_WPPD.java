@@ -28,7 +28,7 @@ public class Main_WPPD extends Application {
             primaryStage.show();
 
             // sæt den rigtige opførsel når applikationen lukkes ned
-            Controller controller = loader.getController();
+            Controller2 controller = loader.getController();
             primaryStage.setOnCloseRequest((new EventHandler<WindowEvent>() {
                 @Override
                 public void handle(WindowEvent event) {
