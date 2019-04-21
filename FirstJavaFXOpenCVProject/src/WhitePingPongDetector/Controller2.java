@@ -5,6 +5,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.opencv.core.*;
@@ -30,6 +31,19 @@ public class Controller2 {
     @FXML
     private ImageView morphImage;
     @FXML
+    private Slider hueStart;
+    @FXML
+    private Slider hueStop;
+    @FXML
+    private Slider saturationStart;
+    @FXML
+    private Slider saturationStop;
+    @FXML
+    private Slider valueStart;
+    @FXML
+    private Slider valueStop;
+    // FXML label to show the current values set with the sliders
+    @FXML
     private Label hsvValues;
 
     // timer til at hente video stream
@@ -41,11 +55,19 @@ public class Controller2 {
     // ID for det kamera der skal bruges
     private static int cameraID = 0;
 
+    // property for object binding
+    private ObjectProperty<String> hsvValuesProp;
+
     /**
      * Aktionen når knappen til at starte kameraet trykkes på GUI
      */
     @FXML
     protected void startCamera() {
+
+        // bind a text property with the string containing the current range of
+        // HSV values for object detection
+        hsvValuesProp = new SimpleObjectProperty<>();
+        this.hsvValues.textProperty().bind(hsvValuesProp);
 
         // set a fixed width for all the image to show and preserve image ratio
         this.imageViewProperties(this.originalFrame, 800);
@@ -117,8 +139,22 @@ public class Controller2 {
                     // minimum og maximum værdier for RBG værdier
                     Scalar valuesMin = new Scalar(0,150,108);
                     Scalar valuesMax = new Scalar(180,255,255);
+
+                    // get thresholding values from the UI
+                    // remember: H ranges 0-180, S and V range 0-255
+                    Scalar minValues = new Scalar(this.hueStart.getValue(), this.saturationStart.getValue(),
+                            this.valueStart.getValue());
+                    Scalar maxValues = new Scalar(this.hueStop.getValue(), this.saturationStop.getValue(),
+                            this.valueStop.getValue());
+
+                    // show the current selected HSV range
+                    String valuesToPrint = "Hue range: " + minValues.val[0] + "-" + maxValues.val[0]
+                            + "\tSaturation range: " + minValues.val[1] + "-" + maxValues.val[1] + "\tValue range: "
+                            + minValues.val[2] + "-" + maxValues.val[2];
+                    ImageSegmentation.utils.Utils.onFXThread(this.hsvValuesProp, valuesToPrint);
+
                     // udvælger elementer fra udvalgte RBG-range og konvertere til hvid farve
-                    Core.inRange(hsvImage, valuesMin, valuesMax, mask);
+                    Core.inRange(hsvImage, minValues, maxValues, mask);
 
                     // opdater billedet oppe til højre i UI
                     this.updateImageView(this.maskImage, Utils.mat2Image(mask));
@@ -147,13 +183,13 @@ public class Controller2 {
                     Mat drawing = Mat.zeros(cannyOutput.size(), CvType.CV_8UC3);
                     for (int i=0; i< contours.size(); i++) {
                         Scalar color = new Scalar(0, 255, 0);
-                        Imgproc.drawContours(drawing, contours, i, color, 2, 8, hierarchy, 0, new Point());
+                        Imgproc.drawContours(frame, contours, i, color, 2, 8, hierarchy, 0, new Point());
                     }
 
                     //findAndDrawRectangles(morhpOutput, morhpOutput);
 
                     // opdater billedet nede til højre i UI
-                    this.updateImageView(this.morphImage, Utils.mat2Image(drawing));
+                    this.updateImageView(this.morphImage, Utils.mat2Image(morhpOutput));
 
 
 
