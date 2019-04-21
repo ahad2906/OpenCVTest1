@@ -103,26 +103,28 @@ public class Controller2 {
 
                     // init
                     Mat grayImage = new Mat();
-                    Mat blurredImage = new Mat();
+
+
                     Mat hsvImage = new Mat();
-                    Mat mask = new Mat();
-                    Mat morhpOutput = new Mat();
-
-
                     // konverter framet framet til et HSV frame
                     Imgproc.cvtColor(frame, hsvImage, Imgproc.COLOR_BGR2HSV);
 
-                    // slørre HSV framet
+                    Mat blurredImage = new Mat();
+                    // slørre framet
                     Imgproc.blur(hsvImage, blurredImage, new Size(7,7));
 
+                    Mat mask = new Mat();
+                    // minimum og maximum værdier for RBG værdier
                     Scalar valuesMin = new Scalar(0,150,108);
                     Scalar valuesMax = new Scalar(180,255,255);
+                    // udvælger elementer fra udvalgte RBG-range og konvertere til hvid farve
                     Core.inRange(hsvImage, valuesMin, valuesMax, mask);
 
                     // opdater billedet oppe til højre i UI
                     this.updateImageView(this.maskImage, Utils.mat2Image(mask));
 
 
+                    Mat morhpOutput = new Mat();
                     // Morphological operators
                     // Dilate elements of size x*x (gør objekt større)
                     Mat dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(4,4));
@@ -133,13 +135,25 @@ public class Controller2 {
                     Imgproc.dilate(mask, morhpOutput, dilateElement);
                     Imgproc.dilate(morhpOutput, morhpOutput, dilateElement);
 
+
+                    Mat cannyOutput = new Mat();
+                    // tegner streger/kanter af elementer i framet
+                    Imgproc.Canny(morhpOutput, cannyOutput, 30, 3);
+
+                    List<MatOfPoint> contours = new ArrayList<>();
+                    Mat hierarchy = new Mat();
+                    Imgproc.findContours(cannyOutput, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+
+                    Mat drawing = Mat.zeros(cannyOutput.size(), CvType.CV_8UC3);
+                    for (int i=0; i< contours.size(); i++) {
+                        Scalar color = new Scalar(0, 255, 0);
+                        Imgproc.drawContours(drawing, contours, i, color, 2, 8, hierarchy, 0, new Point());
+                    }
+
                     //findAndDrawRectangles(morhpOutput, morhpOutput);
 
-
-                    Imgproc.Canny(morhpOutput, morhpOutput, 30, 3);
-
                     // opdater billedet nede til højre i UI
-                    this.updateImageView(this.morphImage, Utils.mat2Image(morhpOutput));
+                    this.updateImageView(this.morphImage, Utils.mat2Image(drawing));
 
 
 
