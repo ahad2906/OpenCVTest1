@@ -16,6 +16,7 @@ import sample.utils.Utils;
 import java.awt.image.ImageProducer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -178,14 +179,15 @@ public class Controller2 {
 
                     List<MatOfPoint> contours = new ArrayList<>();
                     Mat hierarchy = new Mat();
-                    Imgproc.findContours(cannyOutput, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+                    Imgproc.findContours(cannyOutput, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
                     Mat drawing = Mat.zeros(cannyOutput.size(), CvType.CV_8UC3);
                     for (int i=0; i< contours.size(); i++) {
                         Scalar color = new Scalar(0, 255, 0);
-                        Imgproc.drawContours(frame, contours, i, color, 2, 8, hierarchy, 0, new Point());
+                        // tegner contours (stregerne i cannyOutput)
+                        // Imgproc.draContours(destinationFrame, sourceFrameWithContours)
+                        Imgproc.drawContours(frame, contours, i, color, 5, 8, hierarchy, 0, new Point());
                     }
-
                     //findAndDrawRectangles(morhpOutput, morhpOutput);
 
                     // opdater billedet nede til højre i UI
