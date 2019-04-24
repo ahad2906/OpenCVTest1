@@ -179,11 +179,12 @@ public class Controller2 {
 
                     List<MatOfPoint> contours = new ArrayList<>();
                     Mat hierarchy = new Mat();
-                    Imgproc.findContours(cannyOutput, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+                    Imgproc.findContours(cannyOutput, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
 
                     Mat drawing = Mat.zeros(cannyOutput.size(), CvType.CV_8UC3);
                     for (int i=0; i< contours.size(); i++) {
                         Scalar color = new Scalar(0, 255, 0);
+                        
                         // tegner contours (stregerne i cannyOutput)
                         // Imgproc.draContours(destinationFrame, sourceFrameWithContours)
                         Imgproc.drawContours(frame, contours, i, color, 5, 8, hierarchy, 0, new Point());
@@ -192,47 +193,6 @@ public class Controller2 {
 
                     // opdater billedet nede til højre i UI
                     this.updateImageView(this.morphImage, Utils.mat2Image(morhpOutput));
-
-
-
-
-                    /*
-
-                    // fjern noget baggrundsstøj ved at slørre framet
-                    //Imgproc.blur(frame, blurredImage, new Size(7, 7));
-                    //Imgproc.medianBlur(grayImage, blurredImage, 3);
-
-                    // convert the frame to HSV
-                    //Imgproc.cvtColor(blurredImage, hsvImage, Imgproc.COLOR_BGR2HSV);
-
-                    // convert the frame to HLS (HSL)
-                    //Imgproc.cvtColor(blurredImage, hslImage, Imgproc.COLOR_BGR2HLS);
-
-                    // threshold HSV image to select color (balls)
-                    //Core.inRange(blurredImage, valuesMin, valuesMax, mask);
-                    // show the partial output
-
-                    // morphological opreators
-                    // Dilate elements of size x*x (gør objekt større)
-                    //Mat dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(2,2));
-                    // Erode elements of size x*x (gør objekt mindre)
-                    //Mat erodeElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(  14,14));
-
-                    //Imgproc.erode(mask, morhpOutput, erodeElement);
-                    //Imgproc.erode(morhpOutput, morhpOutput, erodeElement);
-
-                    //Imgproc.dilate(mask, morhpOutput, dilateElement);
-                    //Imgproc.dilate(morhpOutput, morhpOutput, dilateElement);
-                    //Imgproc.dilate(morhpOutput, morhpOutput, dilateElement);
-                    //Imgproc.dilate(morhpOutput, morhpOutput, dilateElement);
-
-                    //Imgproc.medianBlur(morhpOutput, morhpOutput, 3);
-
-                    //MatOfPoint2f approx = new MatOfPoint2f();
-                    //Imgproc.approxPolyDP(morhpOutput, approx, Imgproc.arcLength(morhpOutput, true) * 0.02, true);
-
-                    //this.updateImageView(this.morphImage, Utils.mat2Image(mask));
-                    */
 
 
                 }
