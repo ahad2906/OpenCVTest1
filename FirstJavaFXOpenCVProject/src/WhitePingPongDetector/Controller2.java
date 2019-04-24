@@ -182,12 +182,26 @@ public class Controller2 {
                     Imgproc.findContours(cannyOutput, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
 
                     Mat drawing = Mat.zeros(cannyOutput.size(), CvType.CV_8UC3);
+
                     for (int i=0; i< contours.size(); i++) {
                         Scalar color = new Scalar(0, 255, 0);
-                        
+                        MatOfPoint temp_contour = contours.get(i);
+                        MatOfPoint2f new_mat = new MatOfPoint2f( temp_contour.toArray() );
+                        int contourSize = (int)temp_contour.total();
                         // tegner contours (stregerne i cannyOutput)
                         // Imgproc.draContours(destinationFrame, sourceFrameWithContours)
-                        Imgproc.drawContours(frame, contours, i, color, 5, 8, hierarchy, 0, new Point());
+                        MatOfPoint2f approxCurve_temp = new MatOfPoint2f();
+                        Imgproc.approxPolyDP(new_mat, approxCurve_temp, contourSize*0.05, true);
+                        MatOfPoint points = new MatOfPoint( approxCurve_temp.toArray() );
+                        Rect rect = Imgproc.boundingRect(points);
+                      //  Imgproc.drawContours(frame, contours, i, color, 5, 8, hierarchy, 0, new Point());
+                        if(Math.abs(rect.width) > 200 && Math.abs(rect.height)>200) {
+                            Imgproc.rectangle(frame, new Point(rect.x+20, rect.y+20), new Point(rect.x + rect.width-20, rect.y + rect.height-20), new Scalar(170, 0, 150, 0), 15);
+                            String koord = rect.x+20 + ", " + rect.y+20;
+                            String koord1 = rect.x + rect.width-20 + ", " + (rect.y + rect.height-20);
+                            Imgproc.putText(frame, koord, new Point(rect.x, rect.y), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                            Imgproc.putText(frame, koord1, new Point(rect.x+rect.width, rect.y+rect.height), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                        }
                     }
                     //findAndDrawRectangles(morhpOutput, morhpOutput);
 
