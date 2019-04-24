@@ -20,7 +20,7 @@ public class Main_WPPD extends Application {
             // gemmer root elementet så controllerne kan bruge det
             BorderPane rootElement = (BorderPane) loader.load();
             // lav og design en scene
-            Scene scene = new Scene(rootElement, 1700, 1000);
+            Scene scene = new Scene(rootElement, 2000, 1200);
             scene.getStylesheets().add(getClass().getResource("wwpd_application.css").toExternalForm());
             // lav stage med den givne titel og forrige oprettede scene
             primaryStage.setTitle("Camera Feed Window");

@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.opencv.core.*;
@@ -13,10 +14,8 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 import sample.utils.Utils;
 
-import java.awt.image.ImageProducer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -31,6 +30,8 @@ public class Controller2 {
     private ImageView maskImage;
     @FXML
     private ImageView morphImage;
+    @FXML
+    private ImageView cannyImage;
     @FXML
     private Slider hueStart;
     @FXML
@@ -72,8 +73,14 @@ public class Controller2 {
 
         // set a fixed width for all the image to show and preserve image ratio
         this.imageViewProperties(this.originalFrame, 800);
-        this.imageViewProperties(this.maskImage, 500);
-        this.imageViewProperties(this.morphImage, 500);
+        Tooltip.install(originalFrame, new Tooltip("Original frame"));
+        this.imageViewProperties(this.maskImage, 400);
+        Tooltip.install(maskImage, new Tooltip("Mask frame"));
+        this.imageViewProperties(this.morphImage, 400);
+        Tooltip.install(morphImage, new Tooltip("Morph frame"));
+        this.imageViewProperties(this.cannyImage, 400);
+        Tooltip.install(cannyImage, new Tooltip("Canny frame"));
+
 
         if (!this.cameraActive) {
             this.videoCapture.open(cameraID); // start video optagelse
@@ -127,9 +134,8 @@ public class Controller2 {
                     // init
                     Mat grayImage = new Mat();
 
-
                     Mat hsvImage = new Mat();
-                    // konverter framet framet til et HSV frame
+                    // konverter framet til et HSV frame
                     Imgproc.cvtColor(frame, hsvImage, Imgproc.COLOR_BGR2HSV);
 
                     Mat blurredImage = new Mat();
@@ -154,7 +160,7 @@ public class Controller2 {
                             + minValues.val[2] + "-" + maxValues.val[2];
                     ImageSegmentation.utils.Utils.onFXThread(this.hsvValuesProp, valuesToPrint);
 
-                    // udvælger elementer fra udvalgte RBG-range og konvertere til hvid farve
+                    // udvælger elementer fra udvalgte RBG-range og konverterer til hvid farve
                     Core.inRange(hsvImage, minValues, maxValues, mask);
 
                     // opdater billedet oppe til højre i UI
@@ -172,7 +178,6 @@ public class Controller2 {
                     Imgproc.dilate(mask, morhpOutput, dilateElement);
                     Imgproc.dilate(morhpOutput, morhpOutput, dilateElement);
 
-
                     Mat cannyOutput = new Mat();
                     // tegner streger/kanter af elementer i framet
                     Imgproc.Canny(morhpOutput, cannyOutput, 30, 3);
@@ -181,7 +186,7 @@ public class Controller2 {
                     Mat hierarchy = new Mat();
                     Imgproc.findContours(cannyOutput, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
 
-                    Mat drawing = Mat.zeros(cannyOutput.size(), CvType.CV_8UC3);
+                    //Mat drawing = Mat.zeros(cannyOutput.size(), CvType.CV_8UC3);
 
                     for (int i=0; i< contours.size(); i++) {
                         Scalar color = new Scalar(0, 255, 0);
@@ -189,50 +194,60 @@ public class Controller2 {
                         MatOfPoint2f new_mat = new MatOfPoint2f( temp_contour.toArray() );
                         int contourSize = (int)temp_contour.total();
                         // tegner contours (stregerne i cannyOutput)
-                        // Imgproc.draContours(destinationFrame, sourceFrameWithContours)
                         MatOfPoint2f approxCurve_temp = new MatOfPoint2f();
                         Imgproc.approxPolyDP(new_mat, approxCurve_temp, contourSize*0.05, true);
                         MatOfPoint points = new MatOfPoint( approxCurve_temp.toArray() );
                         Rect rect = Imgproc.boundingRect(points);
-                      //  Imgproc.drawContours(frame, contours, i, color, 5, 8, hierarchy, 0, new Point());
-                        if(Math.abs(rect.width) > 200 && Math.abs(rect.height)>200) {
+                        // Imgproc.drawContours(destinationFrame, sourceFrameWithContours)
+                        // Imgproc.drawContours(frame, contours, i, color, 5, 8, hierarchy, 0, new Point());
+                        // tegn firkant, hvis brdde og højde krav er opfyldt
+                        if(Math.abs(rect.width) > 150 && Math.abs(rect.height) > 150) {
+                            // tegner firkant med (x,y)-koordinater
                             Imgproc.rectangle(frame, new Point(rect.x+20, rect.y+20), new Point(rect.x + rect.width-20, rect.y + rect.height-20), new Scalar(170, 0, 150, 0), 15);
-                            String koord = rect.x+20 + ", " + rect.y+20;
-                            String koord1 = rect.x + rect.width-20 + ", " + (rect.y + rect.height-20);
+                            // gem koordinaterne
+                            String koord = rect.x+20 + "," + (rect.y+20);
+                            String koord1 = rect.x + rect.width-20 + "," + (rect.y + rect.height-20);
+                            String koord2 = rect.x+20 + "," + (rect.y + rect.height-20);
+                            String koord3 = rect.x + rect.width-20 + "," + (rect.y);
+                            // print koordinaterne ud på billdet
                             Imgproc.putText(frame, koord, new Point(rect.x, rect.y), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
                             Imgproc.putText(frame, koord1, new Point(rect.x+rect.width, rect.y+rect.height), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                            Imgproc.putText(frame, koord2, new Point(rect.x, rect.y+rect.height), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                            Imgproc.putText(frame, koord3, new Point(rect.x+rect.width, rect.y), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
                         }
                     }
-                    //findAndDrawRectangles(morhpOutput, morhpOutput);
-
                     // opdater billedet nede til højre i UI
                     this.updateImageView(this.morphImage, Utils.mat2Image(morhpOutput));
-
-
+                    // opdater billedet nede til venstre i UI
+                    this.updateImageView(this.cannyImage, Utils.mat2Image(cannyOutput));
                 }
             } catch (Exception e) {
-                System.err.println("Exception under billede udarbejdelse" + e);  // log den fangede error
+                // log den fangede error
+                System.err.println("Exception under billede udarbejdelse" + e);
             }
         }
         return frame;
     }
 
-    private Mat findAndDrawRectangles(Mat sourceFrame, Mat frame) {
+    private Mat findAndDrawBalls(Mat inputFrame, Mat outputFrame) {
+        //Imgproc.cvtColor(maskedImage, maskedImage, Imgproc.COLOR_BGR2GRAY);
+        //Imgproc.medianBlur(maskedImage, maskedImage, 5);
+        Mat circles = new Mat();
 
-        Mat blurredFrame = new Mat();
-        Imgproc.medianBlur(sourceFrame, blurredFrame, 3);
+        Imgproc.HoughCircles(inputFrame, circles, Imgproc.HOUGH_GRADIENT, 1.0
+                , (double)inputFrame.rows()/2
+                ,100, 10, 2, 40);
 
-
-        // lav en rektangel med øverst/venstre vertex at (x,y) med (højde, bredde)
-        Rect rect = new Rect(10, 20, 40, 60);
-
-        int lineThickness = 10;
-        Scalar lineColor = new Scalar(255,0,0);
-
-        // tegn trekanten på billedet med
-        Imgproc.rectangle(sourceFrame,rect ,lineColor, lineThickness);
-
-        return blurredFrame;
+        for (int i=0; i<circles.cols(); i++) {
+            double[] c = circles.get(0,i);
+            Point center = new Point(Math.round(c[0]), Math.round(c[1]));
+            // circle center
+            Imgproc.circle(outputFrame, center, 1, new Scalar(0,255,0), 3, 8, 0 );
+            // circle outline
+            int radius = (int) Math.round(c[2]);
+            Imgproc.circle(outputFrame, center, radius, new Scalar(0,0,255), 2, 5, 0);
+        }
+        return outputFrame;
     }
 
 

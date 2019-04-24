@@ -35,10 +35,13 @@
             <padding>
                 <Insets right="10" left="10"/>
             </padding>
-            <ImageView fx:id="originalFrame"/>
+            <VBox alignment="CENTER" spacing="5">
+                <ImageView fx:id="originalFrame"/>
+            </VBox>
             <VBox alignment="CENTER" spacing="5">
                 <ImageView fx:id="maskImage"/>
                 <ImageView fx:id="morphImage"/>
+                <ImageView fx:id="cannyImage"/>
             </VBox>
         </HBox>
     </center>
