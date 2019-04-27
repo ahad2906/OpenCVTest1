@@ -10,6 +10,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.opencv.core.*;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 import sample.utils.Utils;
@@ -197,11 +198,20 @@ public class Controller2 {
                         MatOfPoint2f approxCurve_temp = new MatOfPoint2f();
                         Imgproc.approxPolyDP(new_mat, approxCurve_temp, contourSize*0.05, true);
                         MatOfPoint points = new MatOfPoint( approxCurve_temp.toArray() );
+
+                        String shape;
+
+                        if (approxCurve_temp.toArray().length == 12) {
+                            shape = "plus";
+                            System.out.println(shape);
+                            Imgproc.drawContours(frame, contours, 1, new Scalar(255,0,0));
+                        }
+
                         Rect rect = Imgproc.boundingRect(points);
                         // Imgproc.drawContours(destinationFrame, sourceFrameWithContours)
                         // Imgproc.drawContours(frame, contours, i, color, 5, 8, hierarchy, 0, new Point());
                         // tegn firkant, hvis brdde og højde krav er opfyldt
-                        if(Math.abs(rect.width) > 150 && Math.abs(rect.height) > 150) {
+                        if(Math.abs(rect.width) > 150 && Math.abs(rect.height) > 50) {
                             // tegner firkant med (x,y)-koordinater
                             Imgproc.rectangle(frame, new Point(rect.x+20, rect.y+20), new Point(rect.x + rect.width-20, rect.y + rect.height-20), new Scalar(170, 0, 150, 0), 15);
                             // gem koordinaterne
@@ -215,6 +225,7 @@ public class Controller2 {
                             Imgproc.putText(frame, koord2, new Point(rect.x, rect.y+rect.height), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
                             Imgproc.putText(frame, koord3, new Point(rect.x+rect.width, rect.y), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
                         }
+
                     }
                     // opdater billedet nede til højre i UI
                     this.updateImageView(this.morphImage, Utils.mat2Image(morhpOutput));
