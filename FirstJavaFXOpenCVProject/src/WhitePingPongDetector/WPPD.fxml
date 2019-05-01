@@ -17,9 +17,9 @@
                 <Insets right="10" left="10" />
             </padding>
             <Label text="Hue Start" />
-            <Slider fx:id="hueStart" min="0" max="180" value="0" blockIncrement="1" />
+            <Slider fx:id="hueStart" min="0" max="180" value="60" blockIncrement="1" />
             <Label text="Hue Stop" />
-            <Slider fx:id="hueStop" min="0" max="180" value="6" blockIncrement="1" />
+            <Slider fx:id="hueStop" min="0" max="180" value="180" blockIncrement="1" />
             <Label text="Saturation Start" />
             <Slider fx:id="saturationStart" min="0" max="255" value="97" blockIncrement="1" />
             <Label text="Saturation Stop" />

@@ -197,11 +197,16 @@ public class Controller2 {
                       //  Imgproc.drawContours(frame, contours, i, color, 5, 8, hierarchy, 0, new Point());
                         if(Math.abs(rect.width) > 200 && Math.abs(rect.height)>200) {
                             Imgproc.rectangle(frame, new Point(rect.x+20, rect.y+20), new Point(rect.x + rect.width-20, rect.y + rect.height-20), new Scalar(170, 0, 150, 0), 15);
-                            String koord = rect.x+20 + ", " + rect.y+20;
-                            String koord1 = rect.x + rect.width-20 + ", " + (rect.y + rect.height-20);
+                            String koord = rect.x+20 + ", " + (rect.y+20);
+                            String koord1 = rect.x + rect.width-20 + ", " + (rect.y + 20);
+                            String koord2 = rect.x + rect.width-20 + ", " + (rect.y + rect.height-20);
+                            String koord3 = rect.x + 20 + ", " + (rect.y + rect.height-20);
+
                             Imgproc.putText(frame, koord, new Point(rect.x, rect.y), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
-                            Imgproc.putText(frame, koord1, new Point(rect.x+rect.width, rect.y+rect.height), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
-                        }
+                            /*Imgproc.putText(frame, koord1, new Point(rect.x+rect.width, rect.y), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                            Imgproc.putText(frame, koord2, new Point(rect.x+rect.width, rect.y+rect.height), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                            Imgproc.putText(frame, koord3, new Point(rect.x, rect.y+rect.height), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                        */}
                     }
                     //findAndDrawRectangles(morhpOutput, morhpOutput);
 
