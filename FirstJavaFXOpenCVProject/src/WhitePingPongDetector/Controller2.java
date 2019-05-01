@@ -241,6 +241,64 @@ public class Controller2 {
         return frame;
     }
 
+    private Mat grabFrame1() {
+        // init alt
+        Mat frame = new Mat();
+
+        // tjek om optagelse er åben
+        if (this.videoCapture.isOpened()) {
+            try {
+                // læs det nuværende frame
+                this.videoCapture.read(frame);
+                // hvis frame ikke er tomt, behandl det
+                if (!frame.empty()) {
+                    int hey;
+                    Mat grayImage = new Mat();
+                    Mat detectedEdges = new Mat();
+                    // konverter framet framet til et HSV frame
+                    Imgproc.cvtColor(frame, grayImage, Imgproc.COLOR_BGR2GRAY);
+                    Imgproc.adaptiveThreshold(grayImage, grayImage, 125, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 11, 12);
+                    // reduce noise with a 3x3 kernel
+                    Imgproc.medianBlur(grayImage, detectedEdges, 3);
+                    //Imgproc.GaussianBlur(grayImage, detectedEdges, new Size(3,3), 2, 2);
+                    Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_CROSS,
+                            new  Size((2*2)+1, (2*2)+1));
+                    // Imgproc.blur(grayImage, detectedEdges, new Size(3, 3));
+                    // canny detector, with ratio of lower:upper threshold of 3:1
+                    int threshold =150;
+                    Imgproc.erode(detectedEdges, detectedEdges, kernel);
+                    Imgproc.dilate(detectedEdges, detectedEdges, kernel);
+                    Imgproc.erode(detectedEdges, detectedEdges, kernel);
+                    Imgproc.dilate(detectedEdges, detectedEdges, kernel);
+                    // using Canny's output as a mask, display the result
+                    Mat circles = new Mat();
+                    Imgproc.Canny(detectedEdges, detectedEdges, threshold, threshold * 3);
+                    Imgcodecs.imwrite("C:\\Users\\gunnh\\OneDrive\\Desktop\\TestBilleder\\testCanny4.png", detectedEdges);
+                    Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT,
+                            1, 10, 19, 18, 5, 10);
+                    for(int i = 0; i < circles.cols(); i++) {
+                        double[] c = circles.get(0, i);
+                        System.out.println(i + ": " + Math.round(c[0]) + ", " + Math.round(c[1]));
+                        Point center = new Point(Math.round(c[0]), Math.round(c[1]));
+                        Imgproc.circle(frame, center, 1, new Scalar(0,100,100), 3, 8, 0);
+                        int radius = (int) Math.round(c[2]);
+
+                        Imgproc.circle(frame, center, radius, new Scalar(225, 0, 225), 3, 8 ,0);
+                        String koord = Math.round(c[0]) + ": " + Math.round(c[1]);
+                        Imgproc.putText(frame, koord, center, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                    }
+                    System.out.println(circles.cols());
+                    this.updateImageView(this.morphImage, Utils.mat2Image(detectedEdges));
+
+
+                }
+            } catch (Exception e) {
+                System.err.println("Exception under billede udarbejdelse" + e);  // log den fangede error
+            }
+        }
+        return frame;
+    }
+
     private Mat findAndDrawBalls(Mat inputFrame, Mat outputFrame) {
         //Imgproc.cvtColor(maskedImage, maskedImage, Imgproc.COLOR_BGR2GRAY);
         //Imgproc.medianBlur(maskedImage, maskedImage, 5);
