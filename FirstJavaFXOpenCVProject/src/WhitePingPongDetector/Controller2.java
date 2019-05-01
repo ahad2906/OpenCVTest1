@@ -92,7 +92,7 @@ public class Controller2 {
                 Runnable frameGrabber = new Runnable() { // fang et frame hvert 33'te ms (30 frame/s)
                     @Override
                     public void run() {
-                        Mat frame = grabFrame(); // fang og behandle et enkelt frame
+                        Mat frame = grabFrame1(); // fang og behandle et enkelt frame
                         Image imageToShow = Utils.mat2Image(frame);
                         updateImageView(originalFrame, imageToShow);
                     }
