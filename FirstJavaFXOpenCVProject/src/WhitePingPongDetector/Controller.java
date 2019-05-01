@@ -179,9 +179,9 @@ public class Controller {
         //Imgproc.medianBlur(maskedImage, maskedImage, 5);
         Mat circles = new Mat();
 
-        Imgproc.HoughCircles(maskedImage, circles, Imgproc.HOUGH_GRADIENT, 1.0
+        Imgproc.HoughCircles(maskedImage, circles, Imgproc.HOUGH_GRADIENT, 0
                 , (double)maskedImage.rows()/2
-                ,100, 10, 2, 40);
+                ,100, 10, 2, 10);
 
         for (int i=0; i<circles.cols(); i++) {
             double[] c = circles.get(0,i);

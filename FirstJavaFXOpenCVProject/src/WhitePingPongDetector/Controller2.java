@@ -75,11 +75,11 @@ public class Controller2 {
         // set a fixed width for all the image to show and preserve image ratio
         this.imageViewProperties(this.originalFrame, 800);
         Tooltip.install(originalFrame, new Tooltip("Original frame"));
-        this.imageViewProperties(this.maskImage, 400);
+        this.imageViewProperties(this.maskImage, 300);
         Tooltip.install(maskImage, new Tooltip("Mask frame"));
-        this.imageViewProperties(this.morphImage, 400);
+        this.imageViewProperties(this.morphImage, 300);
         Tooltip.install(morphImage, new Tooltip("Morph frame"));
-        this.imageViewProperties(this.cannyImage, 400);
+        this.imageViewProperties(this.cannyImage, 300);
         Tooltip.install(cannyImage, new Tooltip("Canny frame"));
 
 
@@ -204,14 +204,15 @@ public class Controller2 {
                         if (approxCurve_temp.toArray().length == 12) {
                             shape = "plus";
                             System.out.println(shape);
-                            Imgproc.drawContours(frame, contours, 1, new Scalar(255,0,0));
+                            Imgproc.drawContours(frame, contours, -1, new Scalar(255,0,0), 2);
+
                         }
 
                         Rect rect = Imgproc.boundingRect(points);
                         // Imgproc.drawContours(destinationFrame, sourceFrameWithContours)
                         // Imgproc.drawContours(frame, contours, i, color, 5, 8, hierarchy, 0, new Point());
                         // tegn firkant, hvis brdde og højde krav er opfyldt
-                        if(Math.abs(rect.width) > 150 && Math.abs(rect.height) > 50) {
+                        if(Math.abs(rect.width) > 200 && Math.abs(rect.height) > 200) {
                             // tegner firkant med (x,y)-koordinater
                             Imgproc.rectangle(frame, new Point(rect.x+20, rect.y+20), new Point(rect.x + rect.width-20, rect.y + rect.height-20), new Scalar(170, 0, 150, 0), 15);
                             // gem koordinaterne
