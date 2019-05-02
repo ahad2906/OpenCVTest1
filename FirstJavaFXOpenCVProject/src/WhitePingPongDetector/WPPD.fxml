@@ -36,6 +36,12 @@
                 <Insets right="10" left="10"/>
             </padding>
             <VBox alignment="CENTER" spacing="5">
+                <ImageView fx:id="originalFrame2"/>
+            </VBox>
+            <VBox alignment="CENTER" spacing="5">
+                <ImageView fx:id="cannyImage2"/>
+            </VBox>
+            <VBox alignment="CENTER" spacing="5">
                 <ImageView fx:id="originalFrame"/>
             </VBox>
             <VBox alignment="CENTER" spacing="5">

@@ -23,16 +23,21 @@ import java.util.concurrent.TimeUnit;
 
 public class Controller2 {
 
+    // Variabler til elementer i FXML Scene/vindue
     @FXML
     private Button button;
     @FXML
     private ImageView originalFrame;
+    @FXML
+    private ImageView originalFrame2;
     @FXML
     private ImageView maskImage;
     @FXML
     private ImageView morphImage;
     @FXML
     private ImageView cannyImage;
+    @FXML
+    private ImageView cannyImage2;
     @FXML
     private Slider hueStart;
     @FXML
@@ -49,16 +54,17 @@ public class Controller2 {
     @FXML
     private Label hsvValues;
 
-    // timer til at hente video stream
+    // Timer til at hente video stream
     private ScheduledExecutorService timer;
-    // openCV objekt som realisere billed opfanging (optagelse)
+    // openCV objekt som realisere billedopfangning (optagelse)
     private VideoCapture videoCapture = new VideoCapture();
-    // flag til at ændre knap funktionalitet
+    // Flag til at ændre knap funktionalitet
     private boolean cameraActive = false;
-    // ID for det kamera der skal bruges
+    // ID for det kamera der skal bruges, typisk 0
+    // Deaktivér standard kamera i 'enhedshåndtering', hvis ekstern kamera skal bruges
     private static int cameraID = 0;
 
-    // property for object binding
+    // Variabel for at binde trackbars for HSV/RGB-værdier i FXML Scene
     private ObjectProperty<String> hsvValuesProp;
 
     /**
@@ -67,120 +73,132 @@ public class Controller2 {
     @FXML
     protected void startCamera() {
 
-        // bind a text property with the string containing the current range of
+        // Bind a text property with the string containing the current range of
         // HSV values for object detection
         hsvValuesProp = new SimpleObjectProperty<>();
         this.hsvValues.textProperty().bind(hsvValuesProp);
 
-        // set a fixed width for all the image to show and preserve image ratio
-        this.imageViewProperties(this.originalFrame, 800);
-        Tooltip.install(originalFrame, new Tooltip("Original frame"));
-        this.imageViewProperties(this.maskImage, 300);
-        Tooltip.install(maskImage, new Tooltip("Mask frame"));
-        this.imageViewProperties(this.morphImage, 300);
-        Tooltip.install(morphImage, new Tooltip("Morph frame"));
-        this.imageViewProperties(this.cannyImage, 300);
-        Tooltip.install(cannyImage, new Tooltip("Canny frame"));
+        // Set a fixed width for all the image to show and preserve image ratio
+        // Frame til boldene
+        this.imageViewProperties(this.originalFrame2, 600);
+        Tooltip.install(originalFrame2, new Tooltip("Original frame2 til boldene"));
+
+        // Frame til canny output af originalFrame2 (til boldene)
+        this.imageViewProperties(this.cannyImage2, 200);
+        Tooltip.install(cannyImage2, new Tooltip("Canny frame (boldene)"));
+
+        // Frame til banen
+        this.imageViewProperties(this.originalFrame, 600);
+        Tooltip.install(originalFrame, new Tooltip("Original frame til banen"));
+
+        // Frame til den røde farve i originalFrame (til banen)
+        this.imageViewProperties(this.maskImage, 200);
+        Tooltip.install(maskImage, new Tooltip("Mask frame (banen)"));
+
+        // Frame til morfologisk transformering af maskImage (til banen)
+        this.imageViewProperties(this.morphImage, 200);
+        Tooltip.install(morphImage, new Tooltip("Morph frame (banen)"));
+
+        // Frame til canny output af morphImage (til banen)
+        this.imageViewProperties(this.cannyImage, 200);
+        Tooltip.install(cannyImage, new Tooltip("Canny frame (banen)"));
 
 
         if (!this.cameraActive) {
-            this.videoCapture.open(cameraID); // start video optagelse
+            // Start video optagelse
+            this.videoCapture.open(cameraID);
 
-            if (this.videoCapture.isOpened()) { // er video streamen tilgængelig?
+            // Er video streamen tilgængelig?
+            if (this.videoCapture.isOpened()) {
                 this.cameraActive = true;
 
-                Runnable frameGrabber = new Runnable() { // fang et frame hvert 33'te ms (30 frame/s)
-                    @Override
-                    public void run() {
-                        Mat frame = grabFrame1(); // fang og behandle et enkelt frame
-                        Image imageToShow = Utils.mat2Image(frame);
-                        updateImageView(originalFrame, imageToShow);
-                    }
+                // Fang et frame hvert 33'te ms (30 frame/s)
+                Runnable frameGrabber = () -> {
+                    // fang og behandle et enkelt frame
+                    Mat frame = grabFrame();
+                    Image imageToShow = Utils.mat2Image(frame);
+                    updateImageView(originalFrame, imageToShow);
                 };
 
                 this.timer = Executors.newSingleThreadScheduledExecutor();
+                // Her sættes framerate
                 this.timer.scheduleAtFixedRate(frameGrabber, 0, 33, TimeUnit.MILLISECONDS);
 
-                // opdater knap indhold
+                // Opdater knap indhold
                 this.button.setText("Stop Kamera");
             } else {
                 System.err.println("Umuligt at åbne kamera forbindelse...");
             }
         } else {
-            // kameraet er ikke aktiv på dette punkt
+            // Kameraet er ikke aktiv på dette punkt
             this.cameraActive = false;
             // opdatere igen knap indholdet
             this.button.setText("Start Camera");
-
-            // stop timeren
+            // Stop timeren
             this.stopAquisition();
         }
     }
 
     /**
-     * fang et frame fra the åbnede video stream (hvis der er nogen)
+     * Fang et frame fra the åbnede video stream (hvis der er nogen)
      */
     private Mat grabFrame() {
-        // init alt
+        // Init alt
         Mat frame = new Mat();
 
-        // tjek om optagelse er åben
+        // Tjek om videooptagelse er åben
         if (this.videoCapture.isOpened()) {
             try {
-                // læs det nuværende frame
+                // Læs det nuværende frame
                 this.videoCapture.read(frame);
-                // hvis frame ikke er tomt, behandl det
+                // Hvis frame ikke er tomt, behandl det
                 if (!frame.empty()) {
 
-                    // init
-                    Mat grayImage = new Mat();
-
+                    // openCV objekt, brug til HSV konvertiering
                     Mat hsvImage = new Mat();
-                    // konverter framet til et HSV frame
+                    // Konverter framet til et HSV frame
                     Imgproc.cvtColor(frame, hsvImage, Imgproc.COLOR_BGR2HSV);
 
                     Mat blurredImage = new Mat();
-                    // slørre framet
+                    // Slørre framet
                     Imgproc.blur(hsvImage, blurredImage, new Size(7,7));
 
                     Mat mask = new Mat();
-                    // minimum og maximum værdier for RBG værdier
-                    Scalar valuesMin = new Scalar(0,150,108);
-                    Scalar valuesMax = new Scalar(180,255,255);
+                    // Minimum og maximum for RBG værdier
+                    //Scalar valuesMin = new Scalar(0,150,108);
+                    //Scalar valuesMax = new Scalar(180,255,255);
 
-                    // get thresholding values from the UI
-                    // remember: H ranges 0-180, S and V range 0-255
-                    Scalar minValues = new Scalar(this.hueStart.getValue(), this.saturationStart.getValue(),
-                            this.valueStart.getValue());
-                    Scalar maxValues = new Scalar(this.hueStop.getValue(), this.saturationStop.getValue(),
-                            this.valueStop.getValue());
+                    // Hent threshold værdier fra UI
+                    // Bemærk: H [0-180], S og V [0-255]
+                    Scalar minValues = new Scalar(this.hueStart.getValue(), this.saturationStart.getValue(), this.valueStart.getValue());
+                    Scalar maxValues = new Scalar(this.hueStop.getValue(), this.saturationStop.getValue(), this.valueStop.getValue());
 
-                    // show the current selected HSV range
+                    // Tilknyt HSV værdier
                     String valuesToPrint = "Hue range: " + minValues.val[0] + "-" + maxValues.val[0]
-                            + "\tSaturation range: " + minValues.val[1] + "-" + maxValues.val[1] + "\tValue range: "
-                            + minValues.val[2] + "-" + maxValues.val[2];
+                                            + "\tSaturation range: " + minValues.val[1] + "-" + maxValues.val[1]
+                                            + "\tValue range: " + minValues.val[2] + "-" + maxValues.val[2];
                     ImageSegmentation.utils.Utils.onFXThread(this.hsvValuesProp, valuesToPrint);
 
-                    // udvælger elementer fra udvalgte RBG-range og konverterer til hvid farve
+                    // Udvælger elementer fra udvalgte RBG/HSV-range og konverterer til hvid farve i nye frame
                     Core.inRange(hsvImage, minValues, maxValues, mask);
 
-                    // opdater billedet oppe til højre i UI
+                    // Opdater billedet oppe til højre i UI
                     this.updateImageView(this.maskImage, Utils.mat2Image(mask));
 
 
                     Mat morhpOutput = new Mat();
                     // Morphological operators
-                    // Dilate elements of size x*x (gør objekt større)
+                    // Dilate elementer af størrelse x*x (gør objekt større)
                     Mat dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(4,4));
-                    // Erode elements of size x*x (gør objekt mindre)
-                    Mat erodeElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(  10,10));
+                    // Erode elementer af størrelse x*x (gør objekt mindre)
+                    Mat erodeElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(10,10));
 
-                    // forstørre elementet x gange
+                    // Forstørre elementet x gange
                     Imgproc.dilate(mask, morhpOutput, dilateElement);
                     Imgproc.dilate(morhpOutput, morhpOutput, dilateElement);
 
                     Mat cannyOutput = new Mat();
-                    // tegner streger/kanter af elementer i framet
+                    // Tegner streger/kanter af elementer i framet
                     Imgproc.Canny(morhpOutput, cannyOutput, 30, 3);
 
                     List<MatOfPoint> contours = new ArrayList<>();
@@ -211,7 +229,7 @@ public class Controller2 {
                         Rect rect = Imgproc.boundingRect(points);
                         // Imgproc.drawContours(destinationFrame, sourceFrameWithContours)
                         // Imgproc.drawContours(frame, contours, i, color, 5, 8, hierarchy, 0, new Point());
-                        // tegn firkant, hvis brdde og højde krav er opfyldt
+                        // Tegn firkant, hvis bredde og højde krav er opfyldt
                         if(Math.abs(rect.width) > 200 && Math.abs(rect.height) > 200) {
                             // tegner firkant med (x,y)-koordinater
                             Imgproc.rectangle(frame, new Point(rect.x+20, rect.y+20), new Point(rect.x + rect.width-20, rect.y + rect.height-20), new Scalar(170, 0, 150, 0), 15);
@@ -239,6 +257,11 @@ public class Controller2 {
             }
         }
         return frame;
+    }
+
+    Mat hsvConverter(Mat inputFrame, Mat outputFrame) {
+        
+        return outputFrame;
     }
 
     private Mat grabFrame1() {
@@ -293,31 +316,11 @@ public class Controller2 {
 
                 }
             } catch (Exception e) {
-                System.err.println("Exception under billede udarbejdelse" + e);  // log den fangede error
+                // Log den fangede error
+                System.err.println("Exception under billede udarbejdelse" + e);
             }
         }
         return frame;
-    }
-
-    private Mat findAndDrawBalls(Mat inputFrame, Mat outputFrame) {
-        //Imgproc.cvtColor(maskedImage, maskedImage, Imgproc.COLOR_BGR2GRAY);
-        //Imgproc.medianBlur(maskedImage, maskedImage, 5);
-        Mat circles = new Mat();
-
-        Imgproc.HoughCircles(inputFrame, circles, Imgproc.HOUGH_GRADIENT, 1.0
-                , (double)inputFrame.rows()/2
-                ,100, 10, 2, 40);
-
-        for (int i=0; i<circles.cols(); i++) {
-            double[] c = circles.get(0,i);
-            Point center = new Point(Math.round(c[0]), Math.round(c[1]));
-            // circle center
-            Imgproc.circle(outputFrame, center, 1, new Scalar(0,255,0), 3, 8, 0 );
-            // circle outline
-            int radius = (int) Math.round(c[2]);
-            Imgproc.circle(outputFrame, center, radius, new Scalar(0,0,255), 2, 5, 0);
-        }
-        return outputFrame;
     }
 
 
@@ -337,17 +340,21 @@ public class Controller2 {
         image.setPreserveRatio(true);
     }
 
+    /**
+     * En timer til at stoppe videooptagelse
+     */
     private void stopAquisition() {
         if (this.timer!=null && !this.timer.isShutdown()) {
             try {
-                this.timer.shutdown(); // stop timeren
+                // stop timeren
+                this.timer.shutdown();
                 this.timer.awaitTermination(33, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
                 System.err.println("Exception ved stopning af fram opfanigningen, forsøger at frigive kamera nu...: " + e);
             }
         }
         if (this.videoCapture.isOpened()) {
-            // release the camera
+            // frigiv kameraet
             this.videoCapture.release();
         }
     }
