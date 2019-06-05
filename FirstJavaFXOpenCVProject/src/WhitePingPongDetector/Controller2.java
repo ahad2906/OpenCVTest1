@@ -387,8 +387,8 @@ public class Controller2 {
                     hsvConverter(frame, hsvImage);
 
                     // Minimum og maximum for RBG værdier
-                    Scalar valuesMin = new Scalar(0,0,137);
-                    Scalar valuesMax = new Scalar(180,48,212);
+                    Scalar valuesMin = new Scalar(0,0,225);
+                    Scalar valuesMax = new Scalar(180,40,255);
 
                     // Udvælger elementer fra udvalgte RBG/HSV-range og konverterer til hvid farve i nye frame
                     Mat mask = new Mat();
@@ -420,7 +420,7 @@ public class Controller2 {
                     Imgproc.Canny(detectedEdges, detectedEdges, threshold, threshold * 3);
 
                     Mat circles = new Mat();
-                    Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT, 1, 10, 19, 18, 20, 30);
+                    Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT, 1, 1, 19, 18, 0, 10);
 
                     for(int i = 0; i < circles.cols(); i++) {
                         double[] c = circles.get(0, i);
