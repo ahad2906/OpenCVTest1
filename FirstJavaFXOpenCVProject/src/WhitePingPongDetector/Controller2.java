@@ -11,6 +11,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.imgproc.Moments;
 import org.opencv.videoio.VideoCapture;
 import sample.utils.Utils;
 
@@ -160,7 +161,7 @@ public class Controller2 {
                 // Hvis frame ikke er tomt, behandl det
                 if (!frame.empty()) {
 
-                    grabFrameCirkel();
+                    grabFrameCirkel2();
 
                     // openCV objekt, brug til HSV konvertiering
                     Mat hsvImage = new Mat();
@@ -215,8 +216,9 @@ public class Controller2 {
 
                     //Mat drawing = Mat.zeros(cannyOutput.size(), CvType.CV_8UC3);
 
+                    List<Moments> mu = new ArrayList<Moments>(contours.size());
+
                     for (int i=0; i< contours.size(); i++) {
-                        Scalar color = new Scalar(0, 255, 0);
                         MatOfPoint temp_contour = contours.get(i);
                         MatOfPoint2f new_mat = new MatOfPoint2f( temp_contour.toArray() );
                         int contourSize = (int)temp_contour.total();
@@ -228,6 +230,12 @@ public class Controller2 {
                         String shape;
 
                         if (approxCurve_temp.toArray().length == 12) {
+                            mu.add(i, Imgproc.moments(contours.get(i), false));
+                            Moments p = mu.get(i);
+                            int x = (int) (p.get_m10() / p.get_m00());
+                            int y = (int) (p.get_m01() / p.get_m00());
+                            String koordCentrum = x-20 + "," + (y-20);
+                            Imgproc.putText(frame, koordCentrum , new Point(x - 20, y - 20), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
                             shape = "plus";
                             System.out.println(shape);
                             Imgproc.drawContours(frame, contours, -1, new Scalar(255,0,0), 2);
