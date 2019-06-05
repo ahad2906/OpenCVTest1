@@ -10,7 +10,6 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.opencv.core.*;
-import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 import sample.utils.Utils;
@@ -32,6 +31,8 @@ public class Controller2 {
     private ImageView originalFrame2;
     @FXML
     private ImageView maskImage;
+    @FXML
+    private ImageView maskImage2;
     @FXML
     private ImageView morphImage;
     @FXML
@@ -83,6 +84,10 @@ public class Controller2 {
         this.imageViewProperties(this.originalFrame2, 600);
         Tooltip.install(originalFrame2, new Tooltip("Original frame2 til boldene"));
 
+        // Frame til mask output af originalFrame2 (til boldene)
+        this.imageViewProperties(this.maskImage2, 200);
+        Tooltip.install(maskImage2, new Tooltip("Mask frame (boldene)"));
+
         // Frame til canny output af originalFrame2 (til boldene)
         this.imageViewProperties(this.cannyImage2, 200);
         Tooltip.install(cannyImage2, new Tooltip("Canny frame (boldene)"));
@@ -105,7 +110,7 @@ public class Controller2 {
 
 
         if (!this.cameraActive) {
-            // Start video optagelse
+            // Start videooptagelse
             this.videoCapture.open(cameraID);
 
             // Er video streamen tilgængelig?
@@ -114,14 +119,14 @@ public class Controller2 {
 
                 // Fang et frame hvert 33'te ms (30 frame/s)
                 Runnable frameGrabber = () -> {
-                    // fang og behandle et enkelt frame
+                    // Fang og behandl et enkelt frame
                     Mat frame = grabFrame();
                     Image imageToShow = Utils.mat2Image(frame);
                     updateImageView(originalFrame, imageToShow);
                 };
 
                 this.timer = Executors.newSingleThreadScheduledExecutor();
-                // Her sættes framerate
+                // Her sættes framerate (Runnable, initialDelay, framerate, tidsenhed )
                 this.timer.scheduleAtFixedRate(frameGrabber, 0, 33, TimeUnit.MILLISECONDS);
 
                 // Opdater knap indhold
@@ -132,7 +137,7 @@ public class Controller2 {
         } else {
             // Kameraet er ikke aktiv på dette punkt
             this.cameraActive = false;
-            // opdatere igen knap indholdet
+            // Opdatere igen knap indholdet
             this.button.setText("Start Camera");
             // Stop timeren
             this.stopAquisition();
@@ -141,6 +146,7 @@ public class Controller2 {
 
     /**
      * Fang et frame fra the åbnede video stream (hvis der er nogen)
+     * Det er her framet skal bearbejdes
      */
     private Mat grabFrame() {
         // Init alt
@@ -154,51 +160,52 @@ public class Controller2 {
                 // Hvis frame ikke er tomt, behandl det
                 if (!frame.empty()) {
 
+                    grabFrameCirkel2();
+
                     // openCV objekt, brug til HSV konvertiering
                     Mat hsvImage = new Mat();
-                    // Konverter framet til et HSV frame
-                    Imgproc.cvtColor(frame, hsvImage, Imgproc.COLOR_BGR2HSV);
+                    hsvConverter(frame, hsvImage);
 
+                    // Slørre billedet
                     Mat blurredImage = new Mat();
-                    // Slørre framet
-                    Imgproc.blur(hsvImage, blurredImage, new Size(7,7));
+                    blurFrame(hsvImage, blurredImage);
 
-                    Mat mask = new Mat();
                     // Minimum og maximum for RBG værdier
                     //Scalar valuesMin = new Scalar(0,150,108);
                     //Scalar valuesMax = new Scalar(180,255,255);
 
-                    // Hent threshold værdier fra UI
+                    // Henter threshold værdier fra UI
                     // Bemærk: H [0-180], S og V [0-255]
                     Scalar minValues = new Scalar(this.hueStart.getValue(), this.saturationStart.getValue(), this.valueStart.getValue());
                     Scalar maxValues = new Scalar(this.hueStop.getValue(), this.saturationStop.getValue(), this.valueStop.getValue());
 
                     // Tilknyt HSV værdier
                     String valuesToPrint = "Hue range: " + minValues.val[0] + "-" + maxValues.val[0]
-                                            + "\tSaturation range: " + minValues.val[1] + "-" + maxValues.val[1]
-                                            + "\tValue range: " + minValues.val[2] + "-" + maxValues.val[2];
-                    ImageSegmentation.utils.Utils.onFXThread(this.hsvValuesProp, valuesToPrint);
+                            + "\tSaturation range: " + minValues.val[1] + "-" + maxValues.val[1]
+                            + "\tValue range: " + minValues.val[2] + "-" + maxValues.val[2];
+                    WhitePingPongDetector.Utils.Utils.onFXThread(this.hsvValuesProp, valuesToPrint);
 
                     // Udvælger elementer fra udvalgte RBG/HSV-range og konverterer til hvid farve i nye frame
+                    Mat mask = new Mat();
                     Core.inRange(hsvImage, minValues, maxValues, mask);
 
                     // Opdater billedet oppe til højre i UI
                     this.updateImageView(this.maskImage, Utils.mat2Image(mask));
 
 
-                    Mat morhpOutput = new Mat();
                     // Morphological operators
-                    // Dilate elementer af størrelse x*x (gør objekt større)
+                    // Dilate = elementer af størrelse (x*x)pixel (gør objekt større)
+                    // Erode  = elementer af størrelse (x*x)pixel (gør objekt mindre)
+                    Mat morhpOutput = new Mat();
                     Mat dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(4,4));
-                    // Erode elementer af størrelse x*x (gør objekt mindre)
                     Mat erodeElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(10,10));
 
                     // Forstørre elementet x gange
-                    Imgproc.dilate(mask, morhpOutput, dilateElement);
-                    Imgproc.dilate(morhpOutput, morhpOutput, dilateElement);
+                    Imgproc.dilate(mask, morhpOutput, dilateElement); // 1. gang
+                    Imgproc.dilate(morhpOutput, morhpOutput, dilateElement); // 2. gang
 
-                    Mat cannyOutput = new Mat();
                     // Tegner streger/kanter af elementer i framet
+                    Mat cannyOutput = new Mat();
                     Imgproc.Canny(morhpOutput, cannyOutput, 30, 3);
 
                     List<MatOfPoint> contours = new ArrayList<>();
@@ -259,12 +266,40 @@ public class Controller2 {
         return frame;
     }
 
-    Mat hsvConverter(Mat inputFrame, Mat outputFrame) {
-        
+    /**
+     * Konvertere inputFrame til grå farve i outputFrame
+     * @param inputFrame
+     * @param outputFrame
+     * @return outputFrame
+     */
+    Mat grayConverter(Mat inputFrame, Mat outputFrame) {
+        Imgproc.cvtColor(inputFrame, outputFrame, Imgproc.COLOR_BGR2GRAY);
         return outputFrame;
     }
 
-    private Mat grabFrame1() {
+    /**
+     * Konverter inputFrame til HSV i outputFrame
+     * @param inputFrame
+     * @param outputFrame
+     * @return outputFrame
+     */
+    Mat hsvConverter(Mat inputFrame, Mat outputFrame) {
+        Imgproc.cvtColor(inputFrame, outputFrame, Imgproc.COLOR_BGR2HSV);
+        return outputFrame;
+    }
+
+    /**
+     * Slørre inputFrame med (x*x)pixel og gemmer i outputFrame
+     * @param inputFrame
+     * @param outputFrame
+     * @return outputFrame
+     */
+    Mat blurFrame(Mat inputFrame, Mat outputFrame) {
+        Imgproc.blur(inputFrame, outputFrame, new Size(7,7));
+        return outputFrame;
+    }
+
+    private Mat grabFrameCirkel() {
         // init alt
         Mat frame = new Mat();
 
@@ -275,30 +310,39 @@ public class Controller2 {
                 this.videoCapture.read(frame);
                 // hvis frame ikke er tomt, behandl det
                 if (!frame.empty()) {
-                    int hey;
+
                     Mat grayImage = new Mat();
-                    Mat detectedEdges = new Mat();
-                    // konverter framet framet til et HSV frame
-                    Imgproc.cvtColor(frame, grayImage, Imgproc.COLOR_BGR2GRAY);
+                    grayConverter(frame, grayImage);
                     Imgproc.adaptiveThreshold(grayImage, grayImage, 125, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 11, 12);
+
+
+                    // konverter framet framet til et HSV frame
+                    //*Imgproc.cvtColor(frame, grayImage, Imgproc.COLOR_BGR2GRAY);
+
                     // reduce noise with a 3x3 kernel
+                    Mat detectedEdges = new Mat();
                     Imgproc.medianBlur(grayImage, detectedEdges, 3);
+
                     //Imgproc.GaussianBlur(grayImage, detectedEdges, new Size(3,3), 2, 2);
-                    Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_CROSS,
-                            new  Size((2*2)+1, (2*2)+1));
+                    Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_CROSS, new  Size((2*2)+1, (2*2)+1));
+
                     // Imgproc.blur(grayImage, detectedEdges, new Size(3, 3));
                     // canny detector, with ratio of lower:upper threshold of 3:1
                     int threshold =150;
+
+                    // forstør/mindsk elementer
                     Imgproc.erode(detectedEdges, detectedEdges, kernel);
                     Imgproc.dilate(detectedEdges, detectedEdges, kernel);
                     Imgproc.erode(detectedEdges, detectedEdges, kernel);
                     Imgproc.dilate(detectedEdges, detectedEdges, kernel);
+
                     // using Canny's output as a mask, display the result
                     Mat circles = new Mat();
                     Imgproc.Canny(detectedEdges, detectedEdges, threshold, threshold * 3);
-                    Imgcodecs.imwrite("C:\\Users\\gunnh\\OneDrive\\Desktop\\TestBilleder\\testCanny4.png", detectedEdges);
-                    Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT,
-                            1, 10, 19, 18, 5, 10);
+                    //Imgcodecs.imwrite("C:\\Users\\gunnh\\OneDrive\\Desktop\\TestBilleder\\testCanny4.png", detectedEdges);
+
+                    Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT, 1, 10, 19, 18, 5, 15);
+
                     for(int i = 0; i < circles.cols(); i++) {
                         double[] c = circles.get(0, i);
                         System.out.println(i + ": " + Math.round(c[0]) + ", " + Math.round(c[1]));
@@ -310,8 +354,89 @@ public class Controller2 {
                         String koord = Math.round(c[0]) + ": " + Math.round(c[1]);
                         Imgproc.putText(frame, koord, center, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
                     }
+
                     System.out.println(circles.cols());
-                    this.updateImageView(this.morphImage, Utils.mat2Image(detectedEdges));
+
+                    this.updateImageView(this.cannyImage2, Utils.mat2Image(detectedEdges));
+                    this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
+
+
+                }
+            } catch (Exception e) {
+                // Log den fangede error
+                System.err.println("Exception under billede udarbejdelse" + e);
+            }
+        }
+        return frame;
+    }
+
+    private Mat grabFrameCirkel2() {
+        // init alt
+        Mat frame = new Mat();
+
+        // tjek om optagelse er åben
+        if (this.videoCapture.isOpened()) {
+            try {
+                // læs det nuværende frame
+                this.videoCapture.read(frame);
+                // hvis frame ikke er tomt, behandl det
+                if (!frame.empty()) {
+
+                    Mat hsvImage = new Mat();
+                    hsvConverter(frame, hsvImage);
+
+                    // Minimum og maximum for RBG værdier
+                    Scalar valuesMin = new Scalar(0,0,137);
+                    Scalar valuesMax = new Scalar(180,48,212);
+
+                    // Udvælger elementer fra udvalgte RBG/HSV-range og konverterer til hvid farve i nye frame
+                    Mat mask = new Mat();
+                    Core.inRange(hsvImage, valuesMin, valuesMax, mask);
+
+                    this.updateImageView(this.maskImage2, Utils.mat2Image(mask));
+
+                    Imgproc.adaptiveThreshold(mask, mask, 125, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 11, 12);
+
+                    // reduce noise with a 3x3 kernel
+                    Mat detectedEdges = new Mat();
+                    //Imgproc.medianBlur(hsvImage, detectedEdges, 3);
+
+
+                    //Imgproc.GaussianBlur(grayImage, detectedEdges, new Size(3,3), 2, 2);
+                    Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_CROSS, new  Size((2*2)+1, (2*2)+1));
+
+                    // Imgproc.blur(grayImage, detectedEdges, new Size(3, 3));
+                    // canny detector, with ratio of lower:upper threshold of 3:1
+
+                    // forstør/mindsk elementer
+                    Imgproc.erode(mask, detectedEdges, kernel);
+                    Imgproc.dilate(detectedEdges, detectedEdges, kernel);
+                    Imgproc.erode(detectedEdges, detectedEdges, kernel);
+                    Imgproc.dilate(detectedEdges, detectedEdges, kernel);
+
+                    // using Canny's output as a mask, display the result
+                    int threshold =150;
+                    Imgproc.Canny(detectedEdges, detectedEdges, threshold, threshold * 3);
+
+                    Mat circles = new Mat();
+                    Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT, 1, 10, 19, 18, 20, 30);
+
+                    for(int i = 0; i < circles.cols(); i++) {
+                        double[] c = circles.get(0, i);
+                        System.out.println(i + ": " + Math.round(c[0]) + ", " + Math.round(c[1]));
+                        Point center = new Point(Math.round(c[0]), Math.round(c[1]));
+                        Imgproc.circle(frame, center, 1, new Scalar(0,100,100), 3, 8, 0);
+                        int radius = (int) Math.round(c[2]);
+
+                        Imgproc.circle(frame, center, radius, new Scalar(225, 0, 225), 3, 8 ,0);
+                        String koord = Math.round(c[0]) + ": " + Math.round(c[1]);
+                        Imgproc.putText(frame, koord, center, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                    }
+
+                    System.out.println(circles.cols());
+
+                    this.updateImageView(this.cannyImage2, Utils.mat2Image(detectedEdges));
+                    this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
 
 
                 }

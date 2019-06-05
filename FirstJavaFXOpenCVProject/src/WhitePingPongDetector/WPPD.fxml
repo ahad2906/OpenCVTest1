@@ -39,6 +39,7 @@
                 <ImageView fx:id="originalFrame2"/>
             </VBox>
             <VBox alignment="CENTER" spacing="5">
+                <ImageView fx:id="maskImage2"/>
                 <ImageView fx:id="cannyImage2"/>
             </VBox>
             <VBox alignment="CENTER" spacing="5">
