@@ -127,7 +127,7 @@ public class Controller2 {
 
                 this.timer = Executors.newSingleThreadScheduledExecutor();
                 // Her sættes framerate (Runnable, initialDelay, framerate, tidsenhed )
-                this.timer.scheduleAtFixedRate(frameGrabber, 0, 33, TimeUnit.MILLISECONDS);
+                this.timer.scheduleAtFixedRate(frameGrabber, 0, 200, TimeUnit.MILLISECONDS);
 
                 // Opdater knap indhold
                 this.button.setText("Stop Kamera");
@@ -160,7 +160,7 @@ public class Controller2 {
                 // Hvis frame ikke er tomt, behandl det
                 if (!frame.empty()) {
 
-                    grabFrameCirkel2();
+                    grabFrameCirkel();
 
                     // openCV objekt, brug til HSV konvertiering
                     Mat hsvImage = new Mat();
@@ -342,7 +342,7 @@ public class Controller2 {
                     Imgproc.Canny(detectedEdges, detectedEdges, threshold, threshold * 3);
                     //Imgcodecs.imwrite("C:\\Users\\gunnh\\OneDrive\\Desktop\\TestBilleder\\testCanny4.png", detectedEdges);
 
-                    Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT, 1, 10, 19, 18, 5, 15);
+                    Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT, 1, 10, 19, 18, 5, 10);
 
                     for(int i = 0; i < circles.cols(); i++) {
                         double[] c = circles.get(0, i);
@@ -360,6 +360,26 @@ public class Controller2 {
 
                     this.updateImageView(this.cannyImage2, Utils.mat2Image(detectedEdges));
                     this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
+
+                    Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT, 1, 10, 19, 18, 15, 20);
+
+                    for(int i = 0; i < circles.cols(); i++) {
+                        double[] c = circles.get(0, i);
+                        System.out.println(i + ": " + Math.round(c[0]) + ", " + Math.round(c[1]));
+                        Point center = new Point(Math.round(c[0]), Math.round(c[1]));
+                        Imgproc.circle(frame, center, 1, new Scalar(0,100,100), 3, 8, 0);
+                        int radius = (int) Math.round(c[2]);
+
+                        Imgproc.circle(frame, center, radius, new Scalar(0, 0, 225), 3, 8 ,0);
+                        String koord = Math.round(c[0]) + ": " + Math.round(c[1]);
+                        Imgproc.putText(frame, koord, center, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                    }
+
+                    System.out.println(circles.cols());
+
+                    this.updateImageView(this.cannyImage2, Utils.mat2Image(detectedEdges));
+                    this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
+
 
 
                 }
