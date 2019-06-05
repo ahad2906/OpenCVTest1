@@ -420,7 +420,7 @@ public class Controller2 {
                     Imgproc.Canny(detectedEdges, detectedEdges, threshold, threshold * 3);
 
                     Mat circles = new Mat();
-                    Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT, 1, 1, 19, 18, 0, 10);
+                    Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT, 1, 10, 19, 18, 0, 10);
 
                     for(int i = 0; i < circles.cols(); i++) {
                         double[] c = circles.get(0, i);
