@@ -128,7 +128,7 @@ public class Controller2 {
 
                 this.timer = Executors.newSingleThreadScheduledExecutor();
                 // Her sættes framerate (Runnable, initialDelay, framerate, tidsenhed )
-                this.timer.scheduleAtFixedRate(frameGrabber, 0, 200, TimeUnit.MILLISECONDS);
+                this.timer.scheduleAtFixedRate(frameGrabber, 0, 20, TimeUnit.MILLISECONDS);
 
                 // Opdater knap indhold
                 this.button.setText("Stop Kamera");
@@ -161,7 +161,12 @@ public class Controller2 {
                 // Hvis frame ikke er tomt, behandl det
                 if (!frame.empty()) {
 
-                    grabFrameCirkel2();
+                    //TODO koordinater til bolde
+                    ArrayList<Point> r = grabFrameCirkel();
+                    for (Point p : r){
+                        System.out.println(p.toString());
+                    }
+                    //grabFrameCirkel();
 
                     // openCV objekt, brug til HSV konvertiering
                     Mat hsvImage = new Mat();
@@ -212,7 +217,7 @@ public class Controller2 {
                     List<MatOfPoint> contours = new ArrayList<>();
                     Mat hierarchy = new Mat();
                     //Imgproc.findContours(cannyOutput, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
-                    Imgproc.findContours(morhpOutput, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
+                    Imgproc.findContours(mask, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
 
                     //Mat drawing = Mat.zeros(cannyOutput.size(), CvType.CV_8UC3);
 
@@ -246,10 +251,11 @@ public class Controller2 {
                         // Imgproc.drawContours(destinationFrame, sourceFrameWithContours)
                         // Imgproc.drawContours(frame, contours, i, color, 5, 8, hierarchy, 0, new Point());
                         // Tegn firkant, hvis bredde og højde krav er opfyldt
-                        if(Math.abs(rect.width) > 200 && Math.abs(rect.height) > 200) {
+                        if(Math.abs(rect.width) > 400 && Math.abs(rect.height) > 200) {
                             // tegner firkant med (x,y)-koordinater
                             Imgproc.rectangle(frame, new Point(rect.x+20, rect.y+20), new Point(rect.x + rect.width-20, rect.y + rect.height-20), new Scalar(170, 0, 150, 0), 15);
                             // gem koordinaterne
+                            //TODO Koordinater til banen
                             String koord = rect.x+20 + "," + (rect.y+20);
                             String koord1 = rect.x + rect.width-20 + "," + (rect.y + rect.height-20);
                             String koord2 = rect.x+20 + "," + (rect.y + rect.height-20);
@@ -308,7 +314,7 @@ public class Controller2 {
         return outputFrame;
     }
 
-    private Mat grabFrameCirkel() {
+    private ArrayList<Point> grabFrameCirkel() {
         // init alt
         Mat frame = new Mat();
 
@@ -333,7 +339,7 @@ public class Controller2 {
                     Imgproc.medianBlur(grayImage, detectedEdges, 3);
 
                     //Imgproc.GaussianBlur(grayImage, detectedEdges, new Size(3,3), 2, 2);
-                    Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_CROSS, new  Size((2*2)+1, (2*2)+1));
+                    Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_CROSS, new  Size(5, 5));
 
                     // Imgproc.blur(grayImage, detectedEdges, new Size(3, 3));
                     // canny detector, with ratio of lower:upper threshold of 3:1
@@ -345,12 +351,14 @@ public class Controller2 {
                     Imgproc.erode(detectedEdges, detectedEdges, kernel);
                     Imgproc.dilate(detectedEdges, detectedEdges, kernel);
 
+
+
                     // using Canny's output as a mask, display the result
                     Mat circles = new Mat();
                     Imgproc.Canny(detectedEdges, detectedEdges, threshold, threshold * 3);
                     //Imgcodecs.imwrite("C:\\Users\\gunnh\\OneDrive\\Desktop\\TestBilleder\\testCanny4.png", detectedEdges);
 
-                    Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT, 1, 10, 19, 18, 5, 10);
+                    Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT, 1, 10, 19, 18, 0, 10);
 
                     for(int i = 0; i < circles.cols(); i++) {
                         double[] c = circles.get(0, i);
@@ -370,7 +378,7 @@ public class Controller2 {
                     this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
 
                     Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT, 1, 10, 19, 18, 15, 20);
-
+                    ArrayList<Point> returnValue = new ArrayList<>();
                     for(int i = 0; i < circles.cols(); i++) {
                         double[] c = circles.get(0, i);
                         System.out.println(i + ": " + Math.round(c[0]) + ", " + Math.round(c[1]));
@@ -381,6 +389,7 @@ public class Controller2 {
                         Imgproc.circle(frame, center, radius, new Scalar(0, 0, 225), 3, 8 ,0);
                         String koord = Math.round(c[0]) + ": " + Math.round(c[1]);
                         Imgproc.putText(frame, koord, center, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                        returnValue.add(center);
                     }
 
                     System.out.println(circles.cols());
@@ -389,17 +398,18 @@ public class Controller2 {
                     this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
 
 
-
+                return returnValue;
                 }
             } catch (Exception e) {
                 // Log den fangede error
                 System.err.println("Exception under billede udarbejdelse" + e);
             }
         }
-        return frame;
+        //return frame;
+        return null;
     }
 
-    private Mat grabFrameCirkel2() {
+    private ArrayList<Point> grabFrameCirkel2() {
         // init alt
         Mat frame = new Mat();
 
@@ -415,8 +425,8 @@ public class Controller2 {
                     hsvConverter(frame, hsvImage);
 
                     // Minimum og maximum for RBG værdier
-                    Scalar valuesMin = new Scalar(0,0,225);
-                    Scalar valuesMax = new Scalar(180,40,255);
+                    Scalar valuesMin = new Scalar(0,0,210);
+                    Scalar valuesMax = new Scalar(180,78,255);
 
                     // Udvælger elementer fra udvalgte RBG/HSV-range og konverterer til hvid farve i nye frame
                     Mat mask = new Mat();
@@ -443,6 +453,7 @@ public class Controller2 {
                     Imgproc.erode(detectedEdges, detectedEdges, kernel);
                     Imgproc.dilate(detectedEdges, detectedEdges, kernel);
 
+
                     // using Canny's output as a mask, display the result
                     int threshold =150;
                     Imgproc.Canny(detectedEdges, detectedEdges, threshold, threshold * 3);
@@ -450,13 +461,14 @@ public class Controller2 {
                     Mat circles = new Mat();
                     Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT, 1, 10, 19, 18, 0, 10);
 
+                    ArrayList<Point> returnValue = new ArrayList<>();
                     for(int i = 0; i < circles.cols(); i++) {
                         double[] c = circles.get(0, i);
-                        System.out.println(i + ": " + Math.round(c[0]) + ", " + Math.round(c[1]));
+                        //System.out.println(i + ": " + Math.round(c[0]) + ", " + Math.round(c[1]));
                         Point center = new Point(Math.round(c[0]), Math.round(c[1]));
                         Imgproc.circle(frame, center, 1, new Scalar(0,100,100), 3, 8, 0);
                         int radius = (int) Math.round(c[2]);
-
+                        returnValue.add(center);
                         Imgproc.circle(frame, center, radius, new Scalar(225, 0, 225), 3, 8 ,0);
                         String koord = Math.round(c[0]) + ": " + Math.round(c[1]);
                         Imgproc.putText(frame, koord, center, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
@@ -466,7 +478,7 @@ public class Controller2 {
 
                     this.updateImageView(this.cannyImage2, Utils.mat2Image(detectedEdges));
                     this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
-
+                    return returnValue;
 
                 }
             } catch (Exception e) {
@@ -474,7 +486,8 @@ public class Controller2 {
                 System.err.println("Exception under billede udarbejdelse" + e);
             }
         }
-        return frame;
+        return null;
+        //return frame;
     }
 
 
