@@ -15,7 +15,6 @@ import org.opencv.imgproc.Moments;
 import org.opencv.videoio.VideoCapture;
 import sample.utils.Utils;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -270,16 +269,17 @@ public class Controller2 {
                             String koord2 = rect.x + 20 + "," + (rect.y + rect.height - 20);
                             String koord3 = rect.x + rect.width - 20 + "," + (rect.y);
                             // print koordinaterne ud på billdet
-                            Imgproc.putText(frame, koord, new Point(rect.x, rect.y), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
-                            Imgproc.putText(frame, koord1, new Point(rect.x + rect.width, rect.y + rect.height), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
-                            Imgproc.putText(frame, koord2, new Point(rect.x, rect.y + rect.height), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
-                            Imgproc.putText(frame, koord3, new Point(rect.x + rect.width, rect.y), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                            /*Imgproc.putText(frame, koord, new Point(rect.x, rect.y), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                            Imgproc.putText(frame, koord1, new Point(rect.x+rect.width, rect.y+rect.height), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                            Imgproc.putText(frame, koord2, new Point(rect.x, rect.y+rect.height), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                            Imgproc.putText(frame, koord3, new Point(rect.x+rect.width, rect.y), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                            */
                         }
 
                     }
-                    // opdater billedet nede til højre i UI
+                    // opdater billedet midt til højre i UI
                     this.updateImageView(this.morphImage, Utils.mat2Image(morhpOutput));
-                    // opdater billedet nede til venstre i UI
+                    // opdater billedet nede til højre i UI
                     this.updateImageView(this.cannyImage, Utils.mat2Image(cannyOutput));
                 }
             } catch (Exception e) {
@@ -289,8 +289,6 @@ public class Controller2 {
         }
         return frame;
     }
-
-
 
     /**
      * Konvertere inputFrame til grå farve i outputFrame
