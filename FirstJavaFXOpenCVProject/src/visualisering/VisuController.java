@@ -22,6 +22,7 @@ public class VisuController {
     Path path;
     private long lastTime;
     private Controller2 otherController;
+    private boolean started = false;
 
     public VisuController(Controller2 other){
         otherController = other;
@@ -32,7 +33,24 @@ public class VisuController {
     }
 
     public void start(){
-        createObjects();
+        if (started) return;
+
+        started = true;
+        //Grid
+        Grid grid = new Grid(map.getWIDTH(), map.getHEIGHT());
+        Point[] points = otherController.getHjørner();
+        Vector2D[] vA = new Vector2D[points.length];
+
+        for (int i = 0; i < vA.length; i++){
+            vA[i] = new Vector2D((float)points[i].x, (float)points[i].y);
+        }
+
+        grid.setScale(vA[0], vA[1], vA[2], vA[3]);
+        grid.setColor(Colors.GRID);
+        map.setGrid(grid);
+
+        //Skab objekterne
+        createObjects(grid);
         //createPath();
 
         new AnimationTimer() {
@@ -54,22 +72,43 @@ public class VisuController {
 
     private void updatePositions(){
         Grid grid = map.getGrid();
-        //Update balls
+
+        //Fetch points
+        List<Vector2D>  robotPos = new ArrayList<>();
+        List<Point> robotPoints = otherController.grabFrameRobotCirkel();
         List<Vector2D> ballPos = new ArrayList<>();
-        List<Point> points = otherController.grabFrameCirkel();
-        if (points == null){
-            return;
+        List<Point> ballPoints = otherController.grabFrameCirkel();
+        int i = 0;
+        boolean robotOk = false, ballOk = false;
+        while (true){
+            if (ballPoints == null || ballPoints.size() < 10){
+                ballPoints = otherController.grabFrameCirkel();
+            }
+            else ballOk = true;
+
+            if (robotPoints == null || robotPoints.size() < 3){
+                ballPoints = otherController.grabFrameCirkel();
+            }
+            else robotOk = true;
+
+            if (robotOk && ballOk) break;
+
+            if (++i > 20){
+                return;
+            }
         }
 
-        for (Point p : points){
+        //Update balls
+        for (Point p : ballPoints){
             ballPos.add(new Vector2D((float)p.x, (float)p.y));
         }
         map.setBalls(createBalls(ballPos.toArray(new Vector2D[0]), grid));
 
         //Update robot
-        //TODO: get position
-        Vector2D[] robotPositions = TestData.robotPos;
-        map.setRobot(createRobot(robotPositions, grid));
+        for (Point p : robotPoints){
+            robotPos.add(new Vector2D((float)p.x, (float)p.y));
+        }
+        map.setRobot(createRobot(robotPos.toArray(new Vector2D[0]), grid));
     }
 
     private void createPath() {
@@ -101,14 +140,7 @@ public class VisuController {
         System.out.println("Path lenght in mm is: "+map.getGrid().translateLengthToMilimeters(path.getLenght()));
     }
 
-    private void createObjects(){
-        //Grid
-        Grid grid = new Grid(map.getWIDTH(), map.getHEIGHT());
-        Vector2D[] vA = TestData.corners;
-        grid.setScale(vA[0], vA[1], vA[2], vA[3]);
-        grid.setColor(Colors.GRID);
-        map.setGrid(grid);
-
+    private void createObjects(Grid grid){
         //Nodes
         Node[][] nodes = new Node[(int)grid.CELLS_HOR][(int)grid.CELLS_VER];
         for (int i = 0; i < nodes.length; i++){
@@ -163,8 +195,7 @@ public class VisuController {
         map.setGoals(goals);
 
         //Balls:
-        vA = TestData.getBalls();
-
+        Vector2D[] vA = TestData.getBalls();
         map.setBalls(createBalls(vA, grid));
     }
 
@@ -186,8 +217,30 @@ public class VisuController {
         Robot robot = new Robot();
         //Oversætter positionerne
         vA = grid.translatePositions(vA);
+
+        //Finder bag og for ende
+        float minDist = Float.MAX_VALUE;
+        Vector2D[] bagpunkter = new Vector2D[2];
+        for (int i = 0; i < vA.length - 1; i++){
+            float dist = Vector2D.Distance(vA[i],vA[i+1]);
+            if (minDist > dist){
+                minDist = dist;
+                bagpunkter[0] = vA[i];
+                bagpunkter[1] = vA[i+1];
+            }
+        }
+        Vector2D forPunkt = Vector2D.ZERO;
+        for (Vector2D v : vA){
+            if (v != bagpunkter[0] && v != bagpunkter[1]){
+                forPunkt = v;
+            }
+        }
+        vA = new Vector2D[]{
+                new Vector2D((bagpunkter[0].getX()+bagpunkter[1].getX())/2, (bagpunkter[0].getY()+bagpunkter[1].getY())/2),
+                forPunkt
+        };
+
         //Finder midten af roboten
-        //TODO: maybe choose min over max?
         Vector2D pos = new Vector2D((vA[0].getX()+vA[1].getX())/2, (vA[0].getY()+vA[1].getY())/2);
         System.out.println(pos.getX()+", "+pos.getY());
         robot.setPos(pos);

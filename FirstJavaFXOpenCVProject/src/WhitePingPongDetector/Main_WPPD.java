@@ -58,6 +58,8 @@ public class Main_WPPD extends Application {
 
             //TODO: tilføj visucontroller reference til controller og kald start når start knappen trykke;
             //visuController.start();
+
+            controller.addVisuController(visuController);
         } catch (Exception e) {
             e.printStackTrace();
         }

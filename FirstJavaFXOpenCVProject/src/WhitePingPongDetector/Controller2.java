@@ -9,11 +9,13 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.PixelFormat;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.imgproc.Moments;
 import org.opencv.videoio.VideoCapture;
 import sample.utils.Utils;
+import visualisering.VisuController;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,6 +71,18 @@ public class Controller2 {
     // Variabel for at binde trackbars for HSV/RGB-værdier i FXML Scene
     private ObjectProperty<String> hsvValuesProp;
 
+    private Point[] hjørner;
+
+    private VisuController visuController;
+
+    public void addVisuController(VisuController visuController){
+        this.visuController = visuController;
+    }
+
+    public Point[] getHjørner(){
+        return hjørner;
+    }
+
     /**
      * Aktionen når knappen til at starte kameraet trykkes på GUI
      */
@@ -109,7 +123,6 @@ public class Controller2 {
         this.imageViewProperties(this.cannyImage, 200);
         Tooltip.install(cannyImage, new Tooltip("Canny frame (banen)"));
 
-
         if (!this.cameraActive) {
             // Start videooptagelse
             this.videoCapture.open(cameraID);
@@ -118,17 +131,11 @@ public class Controller2 {
             if (this.videoCapture.isOpened()) {
                 this.cameraActive = true;
 
-                // Fang et frame hvert 33'te ms (30 frame/s)
-                Runnable frameGrabber = () -> {
-                    // Fang og behandl et enkelt frame
-                    Mat frame = grabFrame();
-                    Image imageToShow = Utils.mat2Image(frame);
-                    updateImageView(originalFrame, imageToShow);
-                };
 
-                this.timer = Executors.newSingleThreadScheduledExecutor();
-                // Her sættes framerate (Runnable, initialDelay, framerate, tidsenhed )
-                this.timer.scheduleAtFixedRate(frameGrabber, 0, 20, TimeUnit.MILLISECONDS);
+                Mat frame = grabFrame();
+                Image imageToShow = Utils.mat2Image(frame);
+                updateImageView(originalFrame, imageToShow);
+                visuController.start();
 
                 // Opdater knap indhold
                 this.button.setText("Stop Kamera");
@@ -162,10 +169,15 @@ public class Controller2 {
                 if (!frame.empty()) {
 
                     //TODO koordinater til bolde
-                    ArrayList<Point> r = grabFrameCirkel();
-                    for (Point p : r){
+                    ArrayList<Point> balls = grabFrameCirkel();
+                    for (Point p : balls){
                         System.out.println(p.toString());
                     }
+                    ArrayList<Point> robotPoints = grabFrameRobotCirkel();
+                    for (Point p : robotPoints){
+                        System.out.println(p.toString());
+                    }
+
                     //grabFrameCirkel();
 
                     // openCV objekt, brug til HSV konvertiering
@@ -260,6 +272,14 @@ public class Controller2 {
                             String koord1 = rect.x + rect.width-20 + "," + (rect.y + rect.height-20);
                             String koord2 = rect.x+20 + "," + (rect.y + rect.height-20);
                             String koord3 = rect.x + rect.width-20 + "," + (rect.y);
+
+                            hjørner = new Point[]{
+                                    new Point(rect.x+20, rect.y+20),
+                                    new Point(rect.x + rect.width-20 ,rect.y),
+                                    new Point(rect.x + rect.width-20 , rect.y + rect.height-20),
+                                    new Point(rect.x+20 ,rect.y + rect.height-20)
+                            };
+
                             // print koordinaterne ud på billdet
                             Imgproc.putText(frame, koord, new Point(rect.x, rect.y), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
                             Imgproc.putText(frame, koord1, new Point(rect.x+rect.width, rect.y+rect.height), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
@@ -359,6 +379,7 @@ public class Controller2 {
                     //Imgcodecs.imwrite("C:\\Users\\gunnh\\OneDrive\\Desktop\\TestBilleder\\testCanny4.png", detectedEdges);
 
                     Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT, 1, 10, 19, 18, 0, 10);
+                    ArrayList<Point> returnValue = new ArrayList<>();
 
                     for(int i = 0; i < circles.cols(); i++) {
                         double[] c = circles.get(0, i);
@@ -370,9 +391,73 @@ public class Controller2 {
                         Imgproc.circle(frame, center, radius, new Scalar(225, 0, 225), 3, 8 ,0);
                         String koord = Math.round(c[0]) + ": " + Math.round(c[1]);
                         Imgproc.putText(frame, koord, center, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                        returnValue.add(center);
+
                     }
 
                     System.out.println(circles.cols());
+
+
+                    this.updateImageView(this.cannyImage2, Utils.mat2Image(detectedEdges));
+                    this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
+
+
+                    return returnValue;
+                }
+            } catch (Exception e) {
+                // Log den fangede error
+                System.err.println("Exception under billede udarbejdelse" + e);
+            }
+        }
+        //return frame;
+        return null;
+    }
+    public ArrayList<Point> grabFrameRobotCirkel() {
+        // init alt
+        Mat frame = new Mat();
+
+        // tjek om optagelse er åben
+        if (this.videoCapture.isOpened()) {
+            try {
+                // læs det nuværende frame
+                this.videoCapture.read(frame);
+                // hvis frame ikke er tomt, behandl det
+                if (!frame.empty()) {
+
+                    Mat grayImage = new Mat();
+                    grayConverter(frame, grayImage);
+                    Imgproc.adaptiveThreshold(grayImage, grayImage, 125, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 11, 12);
+
+
+                    // konverter framet framet til et HSV frame
+                    //*Imgproc.cvtColor(frame, grayImage, Imgproc.COLOR_BGR2GRAY);
+
+                    // reduce noise with a 3x3 kernel
+                    Mat detectedEdges = new Mat();
+                    Imgproc.medianBlur(grayImage, detectedEdges, 3);
+
+                    //Imgproc.GaussianBlur(grayImage, detectedEdges, new Size(3,3), 2, 2);
+                    Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_CROSS, new  Size(5, 5));
+
+                    // Imgproc.blur(grayImage, detectedEdges, new Size(3, 3));
+                    // canny detector, with ratio of lower:upper threshold of 3:1
+                    int threshold =150;
+
+                    // forstør/mindsk elementer
+                    Imgproc.erode(detectedEdges, detectedEdges, kernel);
+                    Imgproc.dilate(detectedEdges, detectedEdges, kernel);
+                    Imgproc.erode(detectedEdges, detectedEdges, kernel);
+                    Imgproc.dilate(detectedEdges, detectedEdges, kernel);
+
+
+
+                    // using Canny's output as a mask, display the result
+                    Mat circles = new Mat();
+                    Imgproc.Canny(detectedEdges, detectedEdges, threshold, threshold * 3);
+                    //Imgcodecs.imwrite("C:\\Users\\gunnh\\OneDrive\\Desktop\\TestBilleder\\testCanny4.png", detectedEdges);
+
+                    //Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT, 1, 10, 19, 18, 0, 10);
+
 
                     this.updateImageView(this.cannyImage2, Utils.mat2Image(detectedEdges));
                     this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
@@ -398,7 +483,7 @@ public class Controller2 {
                     this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
 
 
-                return returnValue;
+                    return returnValue;
                 }
             } catch (Exception e) {
                 // Log den fangede error
