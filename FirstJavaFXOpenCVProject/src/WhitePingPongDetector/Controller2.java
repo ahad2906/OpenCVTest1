@@ -319,7 +319,7 @@ public class Controller2 {
         return outputFrame;
     }
 
-    private ArrayList<Point> grabFrameCirkel() {
+    public ArrayList<Point> grabFrameCirkel() {
         // init alt
         Mat frame = new Mat();
 
@@ -397,7 +397,7 @@ public class Controller2 {
         //return frame;
         return null;
     }
-    private ArrayList<Point> grabFrameRobotCirkel() {
+    public ArrayList<Point> grabFrameRobotCirkel() {
         // init alt
         Mat frame = new Mat();
 
