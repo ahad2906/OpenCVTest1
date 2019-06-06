@@ -314,7 +314,7 @@ public class Controller2 {
         return outputFrame;
     }
 
-    private ArrayList<Point> grabFrameCirkel() {
+    public ArrayList<Point> grabFrameCirkel() {
         // init alt
         Mat frame = new Mat();
 

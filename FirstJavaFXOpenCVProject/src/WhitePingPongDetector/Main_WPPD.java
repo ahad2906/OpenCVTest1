@@ -3,11 +3,16 @@ package WhitePingPongDetector;
 import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import org.opencv.core.Core;
+import visualisering.VisuController;
+import visualisering.View.Colors;
+import visualisering.View.Kort;
 
 
 public class Main_WPPD extends Application {
@@ -35,9 +40,29 @@ public class Main_WPPD extends Application {
                     controller.setClosed();
                 }
             }));
+
+            //Starter visualiseringen
+            int width = 600, height = 400;
+            Stage stage = new Stage();
+            Group root = new Group();
+            Canvas canvas = new Canvas(width, height);
+
+            VisuController visuController = new VisuController(controller);
+            visuController.createMap(new Kort(canvas));
+
+
+            root.getChildren().add(canvas);
+            stage.setTitle("JavaFX Scene Graph Demo");
+            stage.setScene(new Scene(root, Colors.BACKGROUND));
+            stage.show();
+
+            //TODO: tilføj visucontroller reference til controller og kald start når start knappen trykke;
+            //visuController.start();
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+
     }
 
 
