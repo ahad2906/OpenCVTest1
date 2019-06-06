@@ -108,6 +108,10 @@ public class Kort {
         debug.add(obj);
     }
 
+    public void removeDebugObject(IDrawable obj){
+        debug.remove(obj);
+    }
+
     public void update(){
         GraphicsContext context = canvas.getGraphicsContext2D();
         context.clearRect(0,0,WIDTH,HEIGHT); //Clear canvas

@@ -62,6 +62,7 @@ public class VisuController {
                     lastTime = cur;
 
                     updatePositions();
+                    createPath();
 
                     //Draw map
                     map.update();
@@ -112,6 +113,8 @@ public class VisuController {
     }
 
     private void createPath() {
+        if (path != null) map.removeDebugObject(path);
+
         path = new Path(map.getRobot().getPos());
         path.setColor(Colors.PATH);
 
