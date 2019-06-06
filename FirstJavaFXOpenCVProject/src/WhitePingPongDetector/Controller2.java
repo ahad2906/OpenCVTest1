@@ -15,6 +15,7 @@ import org.opencv.imgproc.Moments;
 import org.opencv.videoio.VideoCapture;
 import sample.utils.Utils;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -163,16 +164,15 @@ public class Controller2 {
 
                     //TODO koordinater til bolde
                     ArrayList<Point> balls = grabFrameCirkel();
-                    for (Point p : balls){
-                        System.out.println(p.toString());
+                    for (Point p : balls) {
+                        //System.out.println(p.toString());
                     }
                     ArrayList<Point> robotPoints = grabFrameRobotCirkel();
-                    for (Point p : robotPoints){
-                        System.out.println(p.toString());
+                    for (Point p : robotPoints) {
+                        //System.out.println(p.toString());
                     }
 
-                    //grabFrameCirkel();
-
+                    //grabFrameCirkel()
                     // openCV objekt, brug til HSV konvertiering
                     Mat hsvImage = new Mat();
                     hsvConverter(frame, hsvImage);
@@ -208,8 +208,8 @@ public class Controller2 {
                     // Dilate = elementer af størrelse (x*x)pixel (gør objekt større)
                     // Erode  = elementer af størrelse (x*x)pixel (gør objekt mindre)
                     Mat morhpOutput = new Mat();
-                    Mat dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(4,4));
-                    Mat erodeElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(10,10));
+                    Mat dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(4, 4));
+                    Mat erodeElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(10, 10));
 
                     // Forstørre elementet x gange
                     Imgproc.dilate(mask, morhpOutput, dilateElement); // 1. gang
@@ -222,33 +222,37 @@ public class Controller2 {
                     List<MatOfPoint> contours = new ArrayList<>();
                     Mat hierarchy = new Mat();
                     //Imgproc.findContours(cannyOutput, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
-                    Imgproc.findContours(mask, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
+                    Imgproc.findContours(morhpOutput, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
 
                     //Mat drawing = Mat.zeros(cannyOutput.size(), CvType.CV_8UC3);
 
                     List<Moments> mu = new ArrayList<Moments>(contours.size());
 
-                    for (int i=0; i< contours.size(); i++) {
+                    for (int i = 0; i < contours.size(); i++) {
                         MatOfPoint temp_contour = contours.get(i);
-                        MatOfPoint2f new_mat = new MatOfPoint2f( temp_contour.toArray() );
-                        int contourSize = (int)temp_contour.total();
+                        MatOfPoint2f new_mat = new MatOfPoint2f(temp_contour.toArray());
+                        int contourSize = (int) temp_contour.total();
                         // tegner contours (stregerne i cannyOutput)
                         MatOfPoint2f approxCurve_temp = new MatOfPoint2f();
-                        Imgproc.approxPolyDP(new_mat, approxCurve_temp, contourSize*0.05, true);
-                        MatOfPoint points = new MatOfPoint( approxCurve_temp.toArray() );
+                        Imgproc.approxPolyDP(new_mat, approxCurve_temp, contourSize * 0.05, true);
+                        MatOfPoint points = new MatOfPoint(approxCurve_temp.toArray());
 
                         String shape;
 
                         if (approxCurve_temp.toArray().length == 12) {
+                            Point[] aa = approxCurve_temp.toArray();
+                            for(Point a : aa){
+                                System.out.println(a.toString() + " Dette er point!");
+                            }
                             mu.add(i, Imgproc.moments(contours.get(i), false));
                             Moments p = mu.get(i);
                             int x = (int) (p.get_m10() / p.get_m00());
                             int y = (int) (p.get_m01() / p.get_m00());
-                            String koordCentrum = x-20 + "," + (y-20);
-                            Imgproc.putText(frame, koordCentrum , new Point(x - 20, y - 20), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
+                            String koordCentrum = x - 20 + "," + (y - 20);
+                            Imgproc.putText(frame, koordCentrum, new Point(x - 20, y - 20), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
                             shape = "plus";
                             System.out.println(shape);
-                            Imgproc.drawContours(frame, contours, -1, new Scalar(255,0,0), 2);
+                            Imgproc.drawContours(frame, contours, -1, new Scalar(255, 0, 0), 2);
 
                         }
 
@@ -256,20 +260,20 @@ public class Controller2 {
                         // Imgproc.drawContours(destinationFrame, sourceFrameWithContours)
                         // Imgproc.drawContours(frame, contours, i, color, 5, 8, hierarchy, 0, new Point());
                         // Tegn firkant, hvis bredde og højde krav er opfyldt
-                        if(Math.abs(rect.width) > 400 && Math.abs(rect.height) > 200) {
+                        if (Math.abs(rect.width) > 400 && Math.abs(rect.height) > 200) {
                             // tegner firkant med (x,y)-koordinater
-                            Imgproc.rectangle(frame, new Point(rect.x+20, rect.y+20), new Point(rect.x + rect.width-20, rect.y + rect.height-20), new Scalar(170, 0, 150, 0), 15);
+                            Imgproc.rectangle(frame, new Point(rect.x + 20, rect.y + 20), new Point(rect.x + rect.width - 20, rect.y + rect.height - 20), new Scalar(170, 0, 150, 0), 2);
                             // gem koordinaterne
                             //TODO Koordinater til banen
-                            String koord = rect.x+20 + "," + (rect.y+20);
-                            String koord1 = rect.x + rect.width-20 + "," + (rect.y + rect.height-20);
-                            String koord2 = rect.x+20 + "," + (rect.y + rect.height-20);
-                            String koord3 = rect.x + rect.width-20 + "," + (rect.y);
+                            String koord = rect.x + 20 + "," + (rect.y + 20);
+                            String koord1 = rect.x + rect.width - 20 + "," + (rect.y + rect.height - 20);
+                            String koord2 = rect.x + 20 + "," + (rect.y + rect.height - 20);
+                            String koord3 = rect.x + rect.width - 20 + "," + (rect.y);
                             // print koordinaterne ud på billdet
                             Imgproc.putText(frame, koord, new Point(rect.x, rect.y), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
-                            Imgproc.putText(frame, koord1, new Point(rect.x+rect.width, rect.y+rect.height), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
-                            Imgproc.putText(frame, koord2, new Point(rect.x, rect.y+rect.height), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
-                            Imgproc.putText(frame, koord3, new Point(rect.x+rect.width, rect.y), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                            Imgproc.putText(frame, koord1, new Point(rect.x + rect.width, rect.y + rect.height), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                            Imgproc.putText(frame, koord2, new Point(rect.x, rect.y + rect.height), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                            Imgproc.putText(frame, koord3, new Point(rect.x + rect.width, rect.y), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
                         }
 
                     }
@@ -285,6 +289,8 @@ public class Controller2 {
         }
         return frame;
     }
+
+
 
     /**
      * Konvertere inputFrame til grå farve i outputFrame
