@@ -162,10 +162,15 @@ public class Controller2 {
                 if (!frame.empty()) {
 
                     //TODO koordinater til bolde
-                    ArrayList<Point> r = grabFrameCirkel();
-                    for (Point p : r){
+                    ArrayList<Point> balls = grabFrameCirkel();
+                    for (Point p : balls){
                         System.out.println(p.toString());
                     }
+                    ArrayList<Point> robotPoints = grabFrameRobotCirkel();
+                    for (Point p : robotPoints){
+                        System.out.println(p.toString());
+                    }
+
                     //grabFrameCirkel();
 
                     // openCV objekt, brug til HSV konvertiering
@@ -359,6 +364,7 @@ public class Controller2 {
                     //Imgcodecs.imwrite("C:\\Users\\gunnh\\OneDrive\\Desktop\\TestBilleder\\testCanny4.png", detectedEdges);
 
                     Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT, 1, 10, 19, 18, 0, 10);
+                    ArrayList<Point> returnValue = new ArrayList<>();
 
                     for(int i = 0; i < circles.cols(); i++) {
                         double[] c = circles.get(0, i);
@@ -370,9 +376,73 @@ public class Controller2 {
                         Imgproc.circle(frame, center, radius, new Scalar(225, 0, 225), 3, 8 ,0);
                         String koord = Math.round(c[0]) + ": " + Math.round(c[1]);
                         Imgproc.putText(frame, koord, center, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                        returnValue.add(center);
+
                     }
 
                     System.out.println(circles.cols());
+
+
+                    this.updateImageView(this.cannyImage2, Utils.mat2Image(detectedEdges));
+                    this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
+
+
+                return returnValue;
+                }
+            } catch (Exception e) {
+                // Log den fangede error
+                System.err.println("Exception under billede udarbejdelse" + e);
+            }
+        }
+        //return frame;
+        return null;
+    }
+    private ArrayList<Point> grabFrameRobotCirkel() {
+        // init alt
+        Mat frame = new Mat();
+
+        // tjek om optagelse er åben
+        if (this.videoCapture.isOpened()) {
+            try {
+                // læs det nuværende frame
+                this.videoCapture.read(frame);
+                // hvis frame ikke er tomt, behandl det
+                if (!frame.empty()) {
+
+                    Mat grayImage = new Mat();
+                    grayConverter(frame, grayImage);
+                    Imgproc.adaptiveThreshold(grayImage, grayImage, 125, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 11, 12);
+
+
+                    // konverter framet framet til et HSV frame
+                    //*Imgproc.cvtColor(frame, grayImage, Imgproc.COLOR_BGR2GRAY);
+
+                    // reduce noise with a 3x3 kernel
+                    Mat detectedEdges = new Mat();
+                    Imgproc.medianBlur(grayImage, detectedEdges, 3);
+
+                    //Imgproc.GaussianBlur(grayImage, detectedEdges, new Size(3,3), 2, 2);
+                    Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_CROSS, new  Size(5, 5));
+
+                    // Imgproc.blur(grayImage, detectedEdges, new Size(3, 3));
+                    // canny detector, with ratio of lower:upper threshold of 3:1
+                    int threshold =150;
+
+                    // forstør/mindsk elementer
+                    Imgproc.erode(detectedEdges, detectedEdges, kernel);
+                    Imgproc.dilate(detectedEdges, detectedEdges, kernel);
+                    Imgproc.erode(detectedEdges, detectedEdges, kernel);
+                    Imgproc.dilate(detectedEdges, detectedEdges, kernel);
+
+
+
+                    // using Canny's output as a mask, display the result
+                    Mat circles = new Mat();
+                    Imgproc.Canny(detectedEdges, detectedEdges, threshold, threshold * 3);
+                    //Imgcodecs.imwrite("C:\\Users\\gunnh\\OneDrive\\Desktop\\TestBilleder\\testCanny4.png", detectedEdges);
+
+                    //Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT, 1, 10, 19, 18, 0, 10);
+
 
                     this.updateImageView(this.cannyImage2, Utils.mat2Image(detectedEdges));
                     this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
@@ -398,7 +468,7 @@ public class Controller2 {
                     this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
 
 
-                return returnValue;
+                    return returnValue;
                 }
             } catch (Exception e) {
                 // Log den fangede error
