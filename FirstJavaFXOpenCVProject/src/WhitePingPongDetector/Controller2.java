@@ -52,27 +52,9 @@ public class Controller2 {
     private Slider valueStart;
     @FXML
     private Slider valueStop;
-
-    // ahad HSL START
-    @FXML
-    private Slider hueStart2;
-    @FXML
-    private Slider hueStop2;
-    @FXML
-    private Slider saturationStart2;
-    @FXML
-    private Slider saturationStop2;
-    @FXML
-    private Slider lightStart2;
-    @FXML
-    private Slider lightStop2;
-    // ahad HSL SLUT
-
     // FXML label to show the current values set with the sliders
     @FXML
     private Label hsvValues;
-    @FXML
-    private Label hslValues;
 
     // Timer til at hente video stream
     private ScheduledExecutorService timer;
@@ -86,7 +68,6 @@ public class Controller2 {
 
     // Variabel for at binde trackbars for HSV/RGB-værdier i FXML Scene
     private ObjectProperty<String> hsvValuesProp;
-    private ObjectProperty<String> hslValuesProp;
 
     /**
      * Aktionen når knappen til at starte kameraet trykkes på GUI
@@ -98,9 +79,6 @@ public class Controller2 {
         // HSV values for object detection
         hsvValuesProp = new SimpleObjectProperty<>();
         this.hsvValues.textProperty().bind(hsvValuesProp);
-
-        hslValuesProp = new SimpleObjectProperty<>();
-        this.hslValues.textProperty().bind(hslValuesProp);
 
         // Set a fixed width for all the image to show and preserve image ratio
         // Frame til boldene
@@ -184,7 +162,7 @@ public class Controller2 {
                 if (!frame.empty()) {
 
                     //TODO koordinater til bolde
-                    ArrayList<Point> balls = grabFrameCirkel2();
+                    ArrayList<Point> balls = grabFrameCirkel();
                     for (Point p : balls) {
                         //System.out.println(p.toString());
                     }
@@ -529,27 +507,15 @@ public class Controller2 {
                 if (!frame.empty()) {
 
                     Mat hsvImage = new Mat();
-                    hslConverter(frame, hsvImage);
+                    hsvConverter(frame, hsvImage);
 
                     // Minimum og maximum for RBG værdier
                     Scalar valuesMin = new Scalar(0,0,210);
                     Scalar valuesMax = new Scalar(180,78,255);
 
-                    // Henter threshold værdier fra UI
-                    // Bemærk: H [0-180], S og V [0-255]
-                    Scalar minValues = new Scalar(this.hueStart2.getValue(), this.saturationStart2.getValue(), this.lightStart2.getValue());
-                    Scalar maxValues = new Scalar(this.hueStop2.getValue(), this.saturationStop2.getValue(), this.lightStop2.getValue());
-
-                    // Tilknyt HSV værdier
-                    String valuesToPrint = "Hue range: " + minValues.val[0] + "-" + maxValues.val[0]
-                            + "\tSaturation range: " + minValues.val[1] + "-" + maxValues.val[1]
-                            + "\tLight range: " + minValues.val[2] + "-" + maxValues.val[2];
-                    WhitePingPongDetector.Utils.Utils.onFXThread(this.hslValuesProp, valuesToPrint);
-
-
                     // Udvælger elementer fra udvalgte RBG/HSV-range og konverterer til hvid farve i nye frame
                     Mat mask = new Mat();
-                    Core.inRange(hsvImage, minValues, maxValues, mask);
+                    Core.inRange(hsvImage, valuesMin, valuesMax, mask);
 
                     this.updateImageView(this.maskImage2, Utils.mat2Image(mask));
 
