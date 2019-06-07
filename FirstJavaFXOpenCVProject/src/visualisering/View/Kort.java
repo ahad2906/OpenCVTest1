@@ -122,18 +122,18 @@ public class Kort {
         GraphicsContext context = canvas.getGraphicsContext2D();
         context.clearRect(0,0,WIDTH,HEIGHT); //Clear canvas
 
-        grid.draw(context);
-        robot.draw(context);
+        if (grid != null) grid.draw(context);
+        if (robot != null) robot.draw(context);
         for(Bold ball:balls)
             ball.draw(context);
 
-        cross.draw(context);
+        if (cross != null) cross.draw(context);
 
         for(Mål goal:goals)
             goal.draw(context);
 
-        if(Debug.DEBUG)
+        /*if(Debug.DEBUG)
             for(IDrawable obj:debug)
-                obj.draw(context);
+                obj.draw(context);*/
     }
 }

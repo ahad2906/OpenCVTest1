@@ -139,7 +139,7 @@ public class Controller2 {
 
                 this.timer = Executors.newSingleThreadScheduledExecutor();
                 // Her sættes framerate (Runnable, initialDelay, framerate, tidsenhed )
-                this.timer.scheduleAtFixedRate(frameGrabber, 0, 20, TimeUnit.MILLISECONDS);
+                this.timer.scheduleAtFixedRate(frameGrabber, 0, 300, TimeUnit.MILLISECONDS);
 
                 // Opdater knap indhold
                 this.button.setText("Stop Kamera");

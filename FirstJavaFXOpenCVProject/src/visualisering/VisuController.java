@@ -204,6 +204,7 @@ public class VisuController {
         }
 
         cross.setCorners(vA);
+        map.setCross(cross);
     }
 
     public void updateMap(){
