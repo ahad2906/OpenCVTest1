@@ -21,105 +21,16 @@ public class VisuController {
     private Controller2 otherController;
     private boolean started = false;
 
-    public VisuController(Controller2 other){
-        otherController = other;
-    }
-
     public void createMap(Kort map){
         this.map = map;
     }
 
-    public void test(){
-        //Grid
-        Grid grid = new Grid(map.getWIDTH(), map.getHEIGHT());
-        Vector2D[] vA = TestData.corners;
-        grid.setScale(vA[0], vA[1], vA[2], vA[3]);
-        grid.setColor(Colors.GRID);
-        map.setGrid(grid);
-
-        createObjects(grid);
-
-        map.update();
-    }
-
     public void start(){
-        if (started) return;
-
-        started = true;
-        //Grid
-        Grid grid = new Grid(map.getWIDTH(), map.getHEIGHT());
-        Point[] points = otherController.getHjørner();
-        Vector2D[] vA = new Vector2D[points.length];
-
-        for (int i = 0; i < vA.length; i++){
-            vA[i] = new Vector2D((float)points[i].x, (float)points[i].y);
+        if (!started){
+            createObjects();
+            started = true;
         }
 
-        grid.setScale(vA[0], vA[1], vA[2], vA[3]);
-        grid.setColor(Colors.GRID);
-        map.setGrid(grid);
-
-        //Skab objekterne
-        createObjects(grid);
-        //createPath();
-
-        new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                //Runs every UPDATETIME
-                long cur = System.currentTimeMillis();
-                if (cur - lastTime > UPDATETIME) {
-                    lastTime = cur;
-
-                    updatePositions();
-                    createPath();
-
-                    //Draw map
-                    map.update();
-                }
-            }
-        }.start();
-    }
-
-    private void updatePositions(){
-        Grid grid = map.getGrid();
-
-        //Fetch points
-        List<Vector2D>  robotPos = new ArrayList<>();
-        List<Point> robotPoints = otherController.grabFrameRobotCirkel();
-        List<Vector2D> ballPos = new ArrayList<>();
-        List<Point> ballPoints = otherController.grabFrameCirkel();
-        int i = 0;
-        boolean robotOk = false, ballOk = false;
-        while (true){
-            if (ballPoints == null || ballPoints.size() < 10){
-                ballPoints = otherController.grabFrameCirkel();
-            }
-            else ballOk = true;
-
-            if (robotPoints == null || robotPoints.size() < 3){
-                ballPoints = otherController.grabFrameCirkel();
-            }
-            else robotOk = true;
-
-            if (robotOk && ballOk) break;
-
-            if (++i > 20){
-                return;
-            }
-        }
-
-        //Update balls
-        for (Point p : ballPoints){
-            ballPos.add(new Vector2D((float)p.x, (float)p.y));
-        }
-        map.setBalls(createBalls(ballPos.toArray(new Vector2D[0]), grid));
-
-        //Update robot
-        for (Point p : robotPoints){
-            robotPos.add(new Vector2D((float)p.x, (float)p.y));
-        }
-        map.setRobot(updateRobot(robotPos.toArray(new Vector2D[0]), grid));
     }
 
     private void createPath() {
@@ -153,7 +64,9 @@ public class VisuController {
         System.out.println("Path lenght in mm is: "+map.getGrid().translateLengthToMilimeters(path.getLenght()));
     }
 
-    private void createObjects(Grid grid){
+    private void createObjects(){
+        Grid grid = map.getGrid();
+
         //Nodes
         Node[][] nodes = new Node[(int)grid.CELLS_HOR][(int)grid.CELLS_VER];
         for (int i = 0; i < nodes.length; i++){
@@ -169,14 +82,6 @@ public class VisuController {
             }
         }
         map.setNodes(nodes);
-
-        //The Robot:
-        map.setRobot(updateRobot(TestData.robotPos, grid));
-
-        //Cross
-        Kryds cross = new Kryds(grid.translatePositions(TestData.cross));
-        cross.setColor(Colors.OBSTACLE);
-        map.setCross(cross);
 
         //Goals
         Set<Mål> goals = new HashSet<>();
@@ -194,13 +99,9 @@ public class VisuController {
         goal.setColor(Colors.GOAL);
         goals.add(goal);
         map.setGoals(goals);
-
-        //Balls:
-        Vector2D[] vA = TestData.getBalls();
-        map.setBalls(createBalls(vA, grid));
     }
 
-    private Set<Bold> createBalls(Vector2D[] vA, Grid grid){
+    private void updateBalls(Vector2D[] vA, Grid grid){
         Bold[] balls = new Bold[vA.length];
         for (int i = 0; i < vA.length; i++){
             balls[i] = new Bold();
@@ -211,10 +112,10 @@ public class VisuController {
                     grid.translatePos(vA[i])
             );
         }
-        return new HashSet<>(Arrays.asList(balls));
+        map.setBalls(new HashSet<>(Arrays.asList(balls)));
     }
 
-    private Robot updateRobot(Vector2D[] vA, Grid grid){
+    private void updateRobot(Vector2D[] vA, Grid grid){
         Robot robot = map.getRobot();
         //Oversætter positionerne
         vA = grid.translatePositions(vA);
@@ -258,6 +159,62 @@ public class VisuController {
         float angle = Vector2D.Angle(vA[0], vA[1]);
         robot.setRotation(angle);
 
-        return robot;
+        map.setRobot(robot);
+    }
+
+    public void  updateGrid(Point[] points){
+        Grid grid = map.getGrid();
+        if (grid == null){
+            grid = new Grid(map.getWIDTH(), map.getHEIGHT());
+            grid.setColor(Colors.GRID);
+        }
+
+        Vector2D[] vA = pointToVector(points);
+
+        grid.setScale(vA[0], vA[1], vA[2], vA[3]);
+        map.setGrid(grid);
+    }
+
+    public void updatePositions(List<Point> ballPoints, List<Point> robotPoints){
+        Grid grid = map.getGrid();
+        List<Vector2D> ballPos = new ArrayList<>();
+        List<Vector2D> robotPos = new ArrayList<>();
+
+        //Update balls
+        for (Point p : ballPoints){
+            ballPos.add(new Vector2D((float)p.x, (float)p.y));
+        }
+        updateBalls(ballPos.toArray(new Vector2D[0]), grid);
+
+        //Update robot
+        for (Point p : robotPoints){
+            robotPos.add(new Vector2D((float)p.x, (float)p.y));
+        }
+        updateRobot(robotPos.toArray(new Vector2D[0]), grid);
+    }
+
+    public void updateCross(Point[] points){
+        Kryds cross = map.getCross();
+
+        Vector2D[] vA = pointToVector(points);
+
+        if (cross == null){
+            cross = new Kryds();
+            cross.setColor(Colors.OBSTACLE);
+        }
+
+        cross.setCorners(vA);
+    }
+
+    public void updateMap(){
+        map.update();
+    }
+
+    private Vector2D[] pointToVector(Point[] points){
+        Vector2D[] vA = new Vector2D[points.length];
+        for (int i = 0; i < vA.length; i++){
+            vA[i] = new Vector2D((float)points[i].x, (float)points[i].y);
+        }
+        return vA;
     }
 }

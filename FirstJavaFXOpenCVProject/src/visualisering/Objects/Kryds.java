@@ -10,7 +10,7 @@ public class Kryds extends SpaceObject implements IDrawable {
     private Color color;
     private float thickness;
 
-    public Kryds (Vector2D[] corners){
+    public void setCorners(Vector2D[] corners){
         this.corners = corners;
         Vector2D[] hor = {
                 Vector2D.Middle(corners[2],corners[3]),
@@ -26,15 +26,14 @@ public class Kryds extends SpaceObject implements IDrawable {
         height = Vector2D.Distance(ver[0], ver[1]);
         thickness = (
                 Vector2D.Distance(corners[2], corners[3])
-                + Vector2D.Distance(corners[8], corners[9])
-                + Vector2D.Distance(corners[5], corners[6])
-                + Vector2D.Distance(corners[0], corners[11])
+                        + Vector2D.Distance(corners[8], corners[9])
+                        + Vector2D.Distance(corners[5], corners[6])
+                        + Vector2D.Distance(corners[0], corners[11])
         )/4;
 
         position = Vector2D.Middle(hor[0], hor[1]);
 
         rotation = Vector2D.Angle(hor[0], hor[1]);
-
     }
 
 
