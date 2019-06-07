@@ -239,7 +239,7 @@ public class Controller2 {
                         String shape;
 
                         if (approxCurve_temp.toArray().length == 12) {
-                            Point[] aa = approxCurve_temp.toArray();
+                            Point[] aa = approxCurve_temp.toArray(); //TODO her er Points til plus
                             for(Point a : aa){
                                 System.out.println(a.toString() + " Dette er point!");
                             }
