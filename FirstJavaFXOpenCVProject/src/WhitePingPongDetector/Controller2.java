@@ -313,6 +313,17 @@ public class Controller2 {
     }
 
     /**
+     * Konverter inputFrame til HSV i outputFrame
+     * @param inputFrame
+     * @param outputFrame
+     * @return outputFrame
+     */
+    Mat hslConverter(Mat inputFrame, Mat outputFrame) {
+        Imgproc.cvtColor(inputFrame, outputFrame, Imgproc.COLOR_BGR2HLS);
+        return outputFrame;
+    }
+
+    /**
      * Slørre inputFrame med (x*x)pixel og gemmer i outputFrame
      * @param inputFrame
      * @param outputFrame
