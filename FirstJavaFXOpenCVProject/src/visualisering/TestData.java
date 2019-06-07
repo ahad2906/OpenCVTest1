@@ -11,9 +11,23 @@ public class TestData {
             new Vector2D(1051, 987), //Bottom right
             new Vector2D(45, 993) // Bottom left
     };
+    public static final Vector2D[] cross = {
+            new Vector2D(535, 730),
+            new Vector2D(535, 680),
+            new Vector2D(485, 680),
+            new Vector2D(485, 660),
+            new Vector2D(535, 660),
+            new Vector2D(535, 610),
+            new Vector2D(555, 610),
+            new Vector2D(555, 660),
+            new Vector2D(605, 660),
+            new Vector2D(605, 680),
+            new Vector2D(555, 680),
+            new Vector2D(555, 730)
+    };
 
     public static final Vector2D robot = new Vector2D(97, 403);
-    public static final Vector2D[] robotPos = {new Vector2D(97, 403), new Vector2D(107,413)};
+    public static final Vector2D[] robotPos = {new Vector2D(97, 403), new Vector2D(107,413), new Vector2D(130, 425)};
 
     public static Vector2D[] getBalls(){
         Vector2D[] balls = new Vector2D[10];

@@ -75,6 +75,19 @@ public class Vector2D {
     }
 
     /**
+     * Returns the middle point between to points
+     * @param a point a
+     * @param b point b
+     * @return Vector2D middle
+     */
+    public static Vector2D Middle(Vector2D a, Vector2D b){
+        return new Vector2D(
+                (a.getX()+b.getX())/2,
+                (a.getY()+b.getY())/2
+        );
+    }
+
+    /**
      * Returns the float distance between two Vector2D.
      * @param a first Vector2D
      * @param b second Vector2D

@@ -3,10 +3,7 @@ package visualisering.View;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import visualisering.Debug;
-import visualisering.Objects.Bold;
-import visualisering.Objects.Forhindring;
-import visualisering.Objects.Mål;
-import visualisering.Objects.Robot;
+import visualisering.Objects.*;
 import visualisering.Space.Grid;
 import visualisering.Space.Node;
 import visualisering.Space.Vector2D;
@@ -18,6 +15,7 @@ public class Kort {
     private Grid grid;
     private Node[][] nodes;
     private Robot robot;
+    private Kryds cross;
     private Set<Bold> balls;
     private Set<Mål> goals;
     private Set<Forhindring> obstacles;
@@ -48,6 +46,10 @@ public class Kort {
 
     public Robot getRobot() {
         return robot;
+    }
+
+    public Kryds getCross(){
+        return cross;
     }
 
     public Set<Bold> getBalls() {
@@ -90,6 +92,10 @@ public class Kort {
         this.robot = robot;
     }
 
+    public void setCross(Kryds cross) {
+        this.cross = cross;
+    }
+
     public void setBalls(Set<Bold> balls) {
         this.balls = balls;
     }
@@ -121,8 +127,7 @@ public class Kort {
         for(Bold ball:balls)
             ball.draw(context);
 
-        for(Forhindring obstacle:obstacles)
-            obstacle.draw(context);
+        cross.draw(context);
 
         for(Mål goal:goals)
             goal.draw(context);

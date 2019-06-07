@@ -3,10 +3,7 @@ package visualisering;
 import WhitePingPongDetector.Controller2;
 import javafx.animation.AnimationTimer;
 import org.opencv.core.Point;
-import visualisering.Objects.Bold;
-import visualisering.Objects.Forhindring;
-import visualisering.Objects.Mål;
-import visualisering.Objects.Robot;
+import visualisering.Objects.*;
 import visualisering.Space.Grid;
 import visualisering.Space.Node;
 import visualisering.Space.Path;
@@ -30,6 +27,19 @@ public class VisuController {
 
     public void createMap(Kort map){
         this.map = map;
+    }
+
+    public void test(){
+        //Grid
+        Grid grid = new Grid(map.getWIDTH(), map.getHEIGHT());
+        Vector2D[] vA = TestData.corners;
+        grid.setScale(vA[0], vA[1], vA[2], vA[3]);
+        grid.setColor(Colors.GRID);
+        map.setGrid(grid);
+
+        createObjects(grid);
+
+        map.update();
     }
 
     public void start(){
@@ -109,7 +119,7 @@ public class VisuController {
         for (Point p : robotPoints){
             robotPos.add(new Vector2D((float)p.x, (float)p.y));
         }
-        map.setRobot(createRobot(robotPos.toArray(new Vector2D[0]), grid));
+        map.setRobot(updateRobot(robotPos.toArray(new Vector2D[0]), grid));
     }
 
     private void createPath() {
@@ -161,24 +171,12 @@ public class VisuController {
         map.setNodes(nodes);
 
         //The Robot:
-        map.setRobot(createRobot(TestData.robotPos, grid));
+        map.setRobot(updateRobot(TestData.robotPos, grid));
 
-        //Obstacles
-        Set<Forhindring> obstacles = new HashSet<>();
-        Forhindring obstacle = new Forhindring();
-        obstacle.setPos(grid.getCenterPos());
-        obstacle.setWidth(grid.CELL_SPACING.getX());
-        obstacle.setHeight(grid.CELL_SPACING.getY()*5);
-        obstacle.setColor(Colors.OBSTACLE);
-        obstacles.add(obstacle);
-
-        obstacle = new Forhindring();
-        obstacle.setPos(grid.getCenterPos());
-        obstacle.setWidth(grid.CELL_SPACING.getX()*5);
-        obstacle.setHeight(grid.CELL_SPACING.getY());
-        obstacle.setColor(Colors.OBSTACLE);
-        obstacles.add(obstacle);
-        map.setObstacles(obstacles);
+        //Cross
+        Kryds cross = new Kryds(grid.translatePositions(TestData.cross));
+        cross.setColor(Colors.OBSTACLE);
+        map.setCross(cross);
 
         //Goals
         Set<Mål> goals = new HashSet<>();
@@ -216,8 +214,8 @@ public class VisuController {
         return new HashSet<>(Arrays.asList(balls));
     }
 
-    private Robot createRobot(Vector2D[] vA, Grid grid){
-        Robot robot = new Robot();
+    private Robot updateRobot(Vector2D[] vA, Grid grid){
+        Robot robot = map.getRobot();
         //Oversætter positionerne
         vA = grid.translatePositions(vA);
 
@@ -239,24 +237,26 @@ public class VisuController {
             }
         }
         vA = new Vector2D[]{
-                new Vector2D((bagpunkter[0].getX()+bagpunkter[1].getX())/2, (bagpunkter[0].getY()+bagpunkter[1].getY())/2),
+                Vector2D.Middle(bagpunkter[0], bagpunkter[1]),
                 forPunkt
         };
 
+        if (robot == null){
+            robot = new Robot();
+            //Finder robotens størrelse
+            float width = Vector2D.Distance(vA[0], vA[1]);
+            robot.setWidth(width);
+            robot.setHeight(width);
+            //Farven
+            robot.setColor(Colors.ROBOT);
+        }
+
         //Finder midten af roboten
-        Vector2D pos = new Vector2D((vA[0].getX()+vA[1].getX())/2, (vA[0].getY()+vA[1].getY())/2);
-        System.out.println(pos.getX()+", "+pos.getY());
+        Vector2D pos = Vector2D.Middle(vA[0], vA[1]);
         robot.setPos(pos);
-        //Finder robotens størrelse
-        float dist = Vector2D.Distance(vA[0], vA[1]);
-        System.out.println(dist);
-        robot.setWidth(grid.CELL_SPACING.getX()*1.5f);
-        robot.setHeight(grid.CELL_SPACING.getY()*1.5f);
         //Finder robotens vinkel
         float angle = Vector2D.Angle(vA[0], vA[1]);
         robot.setRotation(angle);
-        //Farven
-        robot.setColor(Colors.ROBOT);
 
         return robot;
     }
