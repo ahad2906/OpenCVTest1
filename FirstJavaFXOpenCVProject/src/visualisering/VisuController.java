@@ -109,7 +109,7 @@ public class VisuController {
         Point[] cPoints = otherController.getKryds();
 
         if (cPoints != null && cPoints.length >= 12){
-            map.getCross().setCorners(pointToVector(cPoints));
+            map.getCross().setCorners(grid.translatePositions(pointToVector(cPoints)));
         }
     }
 
