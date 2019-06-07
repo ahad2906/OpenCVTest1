@@ -9,6 +9,7 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.PixelFormat;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.imgproc.Moments;
@@ -70,11 +71,28 @@ public class Controller2 {
     // Variabel for at binde trackbars for HSV/RGB-værdier i FXML Scene
     private ObjectProperty<String> hsvValuesProp;
 
-    // VisuController
+    private Point[] hjørner;
+
+    private Point[] kryds;
+
     private VisuController visuController;
 
-    public void setVisuController(VisuController visuController){
+    public void addVisuController(VisuController visuController){
         this.visuController = visuController;
+    }
+
+    public Point[] getHjørner(){
+        return hjørner;
+    }
+
+    public Point[] getKryds(){
+        return kryds;
+    }
+
+    public void update(){
+        Mat frame = grabFrame();
+        Image imageToShow = Utils.mat2Image(frame);
+        updateImageView(originalFrame, imageToShow);
     }
 
     /**
@@ -117,7 +135,6 @@ public class Controller2 {
         this.imageViewProperties(this.cannyImage, 200);
         Tooltip.install(cannyImage, new Tooltip("Canny frame (banen)"));
 
-
         if (!this.cameraActive) {
             // Start videooptagelse
             this.videoCapture.open(cameraID);
@@ -126,20 +143,8 @@ public class Controller2 {
             if (this.videoCapture.isOpened()) {
                 this.cameraActive = true;
 
-                // Fang et frame hvert 33'te ms (30 frame/s)
-                Runnable frameGrabber = () -> {
-                    // Fang og behandl et enkelt frame
-                    Mat frame = grabFrame();
-                    Image imageToShow = Utils.mat2Image(frame);
-                    updateImageView(originalFrame, imageToShow);
-                    visuController.start();
-                    visuController.updatePositions(grabFrameCirkel(), grabFrameRobotCirkel());
-                    visuController.updateMap();
-                };
-
-                this.timer = Executors.newSingleThreadScheduledExecutor();
-                // Her sættes framerate (Runnable, initialDelay, framerate, tidsenhed )
-                this.timer.scheduleAtFixedRate(frameGrabber, 0, 20, TimeUnit.MILLISECONDS);
+                update();
+                visuController.start();
 
                 // Opdater knap indhold
                 this.button.setText("Stop Kamera");
@@ -172,7 +177,8 @@ public class Controller2 {
                 // Hvis frame ikke er tomt, behandl det
                 if (!frame.empty()) {
 
-                    //grabFrameCirkel()
+                    //grabFrameCirkel();
+
                     // openCV objekt, brug til HSV konvertiering
                     Mat hsvImage = new Mat();
                     hsvConverter(frame, hsvImage);
@@ -208,8 +214,8 @@ public class Controller2 {
                     // Dilate = elementer af størrelse (x*x)pixel (gør objekt større)
                     // Erode  = elementer af størrelse (x*x)pixel (gør objekt mindre)
                     Mat morhpOutput = new Mat();
-                    Mat dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(4, 4));
-                    Mat erodeElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(10, 10));
+                    Mat dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(4,4));
+                    Mat erodeElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(10,10));
 
                     // Forstørre elementet x gange
                     Imgproc.dilate(mask, morhpOutput, dilateElement); // 1. gang
@@ -222,61 +228,28 @@ public class Controller2 {
                     List<MatOfPoint> contours = new ArrayList<>();
                     Mat hierarchy = new Mat();
                     //Imgproc.findContours(cannyOutput, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
-                    Imgproc.findContours(morhpOutput, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
+                    Imgproc.findContours(mask, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
 
                     //Mat drawing = Mat.zeros(cannyOutput.size(), CvType.CV_8UC3);
 
                     List<Moments> mu = new ArrayList<Moments>(contours.size());
 
-                    for (int i = 0; i < contours.size(); i++) {
+                    for (int i=0; i< contours.size(); i++) {
                         MatOfPoint temp_contour = contours.get(i);
-                        MatOfPoint2f new_mat = new MatOfPoint2f(temp_contour.toArray());
-                        int contourSize = (int) temp_contour.total();
+                        MatOfPoint2f new_mat = new MatOfPoint2f( temp_contour.toArray() );
+                        int contourSize = (int)temp_contour.total();
                         // tegner contours (stregerne i cannyOutput)
                         MatOfPoint2f approxCurve_temp = new MatOfPoint2f();
-                        Imgproc.approxPolyDP(new_mat, approxCurve_temp, contourSize * 0.05, true);
-                        MatOfPoint points = new MatOfPoint(approxCurve_temp.toArray());
-
-                        Rect rect = Imgproc.boundingRect(points);
-                        // Imgproc.drawContours(destinationFrame, sourceFrameWithContours)
-                        // Imgproc.drawContours(frame, contours, i, color, 5, 8, hierarchy, 0, new Point());
-                        // Tegn firkant, hvis bredde og højde krav er opfyldt
-                        if (Math.abs(rect.width) > 400 && Math.abs(rect.height) > 200) {
-                            // tegner firkant med (x,y)-koordinater
-                            Imgproc.rectangle(frame, new Point(rect.x + 20, rect.y + 20), new Point(rect.x + rect.width - 20, rect.y + rect.height - 20), new Scalar(170, 0, 150, 0), 2);
-                            // gem koordinaterne
-                            String koord = rect.x + 20 + "," + (rect.y + 20);
-                            String koord1 = rect.x + rect.width - 20 + "," + (rect.y + rect.height - 20);
-                            String koord2 = rect.x + 20 + "," + (rect.y + rect.height - 20);
-                            String koord3 = rect.x + rect.width - 20 + "," + (rect.y);
-
-
-                            //Opdaterer koordinatsystemet
-                            visuController.updateGrid(new Point[]{
-                                    new Point(rect.x+20, rect.y+20),
-                                    new Point(rect.x + rect.width-20 ,rect.y),
-                                    new Point(rect.x + rect.width-20 , rect.y + rect.height-20),
-                                    new Point(rect.x+20 ,rect.y + rect.height-20)
-                            });
-
-
-                            // print koordinaterne ud på billdet
-                            /*Imgproc.putText(frame, koord, new Point(rect.x, rect.y), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
-                            Imgproc.putText(frame, koord1, new Point(rect.x+rect.width, rect.y+rect.height), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
-                            Imgproc.putText(frame, koord2, new Point(rect.x, rect.y+rect.height), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
-                            Imgproc.putText(frame, koord3, new Point(rect.x+rect.width, rect.y), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
-                            */
-                        }
+                        Imgproc.approxPolyDP(new_mat, approxCurve_temp, contourSize*0.05, true);
+                        MatOfPoint points = new MatOfPoint( approxCurve_temp.toArray() );
 
                         String shape;
 
                         if (approxCurve_temp.toArray().length == 12) {
-                            Point[] aa = approxCurve_temp.toArray();
+                            kryds = approxCurve_temp.toArray();
 
-                            //Opdaterer krydset i visu
-                            visuController.updateCross(aa);
 
-                            for(Point a : aa){
+                            for(Point a : kryds){
                                 System.out.println(a.toString() + " Dette er point!");
                             }
                             mu.add(i, Imgproc.moments(contours.get(i), false));
@@ -291,10 +264,38 @@ public class Controller2 {
 
                         }
 
+                        Rect rect = Imgproc.boundingRect(points);
+                        // Imgproc.drawContours(destinationFrame, sourceFrameWithContours)
+                        // Imgproc.drawContours(frame, contours, i, color, 5, 8, hierarchy, 0, new Point());
+                        // Tegn firkant, hvis bredde og højde krav er opfyldt
+                        if(Math.abs(rect.width) > 400 && Math.abs(rect.height) > 200) {
+                            // tegner firkant med (x,y)-koordinater
+                            Imgproc.rectangle(frame, new Point(rect.x+20, rect.y+20), new Point(rect.x + rect.width-20, rect.y + rect.height-20), new Scalar(170, 0, 150, 0), 15);
+                            // gem koordinaterne
+                            //TODO Koordinater til banen
+                            String koord = rect.x+20 + "," + (rect.y+20);
+                            String koord1 = rect.x + rect.width-20 + "," + (rect.y + rect.height-20);
+                            String koord2 = rect.x+20 + "," + (rect.y + rect.height-20);
+                            String koord3 = rect.x + rect.width-20 + "," + (rect.y);
+
+                            hjørner = new Point[]{
+                                    new Point(rect.x+20, rect.y+20),
+                                    new Point(rect.x + rect.width-20 ,rect.y),
+                                    new Point(rect.x + rect.width-20 , rect.y + rect.height-20),
+                                    new Point(rect.x+20 ,rect.y + rect.height-20)
+                            };
+
+                            // print koordinaterne ud på billdet
+                            Imgproc.putText(frame, koord, new Point(rect.x, rect.y), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                            Imgproc.putText(frame, koord1, new Point(rect.x+rect.width, rect.y+rect.height), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                            Imgproc.putText(frame, koord2, new Point(rect.x, rect.y+rect.height), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                            Imgproc.putText(frame, koord3, new Point(rect.x+rect.width, rect.y), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                        }
+
                     }
-                    // opdater billedet midt til højre i UI
-                    this.updateImageView(this.morphImage, Utils.mat2Image(morhpOutput));
                     // opdater billedet nede til højre i UI
+                    this.updateImageView(this.morphImage, Utils.mat2Image(morhpOutput));
+                    // opdater billedet nede til venstre i UI
                     this.updateImageView(this.cannyImage, Utils.mat2Image(cannyOutput));
                 }
             } catch (Exception e) {

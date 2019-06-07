@@ -39,6 +39,11 @@ public class Kryds extends SpaceObject implements IDrawable {
 
     @Override
     public void draw(GraphicsContext context) {
+        context.save();
+        context.translate(position.getX(), position.getY());
+        context.rotate(rotation);
+        context.translate(-position.getX(), -position.getY());
+
         context.setFill(color);
         context.fillRect(
                 position.getX()-width/2,
@@ -50,6 +55,8 @@ public class Kryds extends SpaceObject implements IDrawable {
                 position.getY()-height/2,
                 thickness, height
         );
+
+        context.restore();
     }
 
     @Override

@@ -47,7 +47,7 @@ public class Main_WPPD extends Application {
             Group root = new Group();
             Canvas canvas = new Canvas(width, height);
 
-            VisuController visuController = new VisuController();
+            VisuController visuController = new VisuController(controller);
             visuController.createMap(new Kort(canvas));
 
 
@@ -57,7 +57,7 @@ public class Main_WPPD extends Application {
             stage.show();
 
 
-            controller.setVisuController(visuController);
+            controller.addVisuController(visuController);
         } catch (Exception e) {
             e.printStackTrace();
         }
