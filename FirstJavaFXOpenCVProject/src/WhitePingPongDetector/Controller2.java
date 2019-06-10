@@ -192,6 +192,7 @@ public class Controller2 {
                     //grabFrameCirkel()
                     // openCV objekt, brug til HSV konvertiering
                     Mat hsvImage = new Mat();
+                    //hsvConverter(frame, hsvImage);
                     hsvConverter(frame, hsvImage);
 
                     // Slørre billedet
@@ -264,18 +265,34 @@ public class Controller2 {
                         if (approxCurve_temp.toArray().length == 12) {
                             Point[] aa = approxCurve_temp.toArray(); //TODO her er Points til plus
                             for(Point a : aa){
-                                System.out.println(a.toString() + " Dette er point!");
-                            }
-                            mu.add(i, Imgproc.moments(contours.get(i), false));
-                            Moments p = mu.get(i);
-                            int x = (int) (p.get_m10() / p.get_m00());
-                            int y = (int) (p.get_m01() / p.get_m00());
-                            String koordCentrum = x - 20 + "," + (y - 20);
-                            Imgproc.putText(frame, koordCentrum, new Point(x - 20, y - 20), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
-                            shape = "plus";
-                            System.out.println(shape);
-                            Imgproc.drawContours(frame, contours, -1, new Scalar(255, 0, 0), 2);
+                               // System.out.println(a.toString() + " Dette er point!");
+                                //Imgproc.putText(frame, a.toString(), a, Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
 
+                            }
+                            int count = 1;
+                            boolean cross = true;
+                            for(Point a : aa){
+                                if(!((a.x>100 && a.x<400)&&(a.y>100 && a.y<300))) {
+                                    cross = false;
+                                }
+                                else{
+                                    String countString = count++ + "";
+                                    System.out.println(a.x + ", " + a.y + " Dette er point!");
+                                    Imgproc.putText(frame, countString, a, Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
+
+                                }
+                            }
+                            if(cross) {
+                                mu.add(i, Imgproc.moments(contours.get(i), false));
+                                Moments p = mu.get(i);
+                                int x = (int) (p.get_m10() / p.get_m00());
+                                int y = (int) (p.get_m01() / p.get_m00());
+                                String koordCentrum = x - 20 + "," + (y - 20);
+                                Imgproc.putText(frame, koordCentrum, new Point(x - 20, y - 20), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
+                                shape = "plus";
+                                System.out.println(shape);
+                                Imgproc.drawContours(frame, contours, -1, new Scalar(255, 0, 0), 2);
+                            }
                         }
 
                         Rect rect = Imgproc.boundingRect(points);
