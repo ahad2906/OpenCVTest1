@@ -187,6 +187,17 @@ public class Controller2 {
 
                     // Henter threshold værdier fra UI
                     // Bemærk: H [0-180], S og V [0-255]
+                    Mat hueStart = new Mat();
+                    Mat hueLower = new Mat();
+                    Mat hueUpper = new Mat();
+                    Core.inRange(hsvImage,new Scalar(this.hueStart1.getValue(),this.saturationStart.getValue(), this.valueStart.getValue()),
+                            new Scalar(this.hueStop1.getValue(), this.saturationStop.getValue(), this.valueStop.getValue()), hueLower);
+                    Core.inRange(hsvImage,new Scalar(this.hueStart2.getValue(),this.saturationStart.getValue(), this.valueStart.getValue()),
+                            new Scalar(this.hueStop2.getValue(), this.saturationStop.getValue(), this.valueStop.getValue()), hueUpper);
+
+
+                    Core.addWeighted(hueLower,1.0, hueUpper, 1.0,0.0,hueStart);
+
                     Scalar minValues = new Scalar(this.hueStart.getValue(), this.saturationStart.getValue(), this.valueStart.getValue());
                     Scalar maxValues = new Scalar(this.hueStop.getValue(), this.saturationStop.getValue(), this.valueStop.getValue());
 
