@@ -41,9 +41,9 @@ public class Controller2 {
     @FXML
     private ImageView cannyImage2;
     @FXML
-    private Slider hueStart;
+    private Slider hueStart1;
     @FXML
-    private Slider hueStop;
+    private Slider hueStop1;
     @FXML
     private Slider saturationStart;
     @FXML
@@ -57,13 +57,13 @@ public class Controller2 {
     @FXML
     private Slider hueStop2;
     @FXML
-    private Slider saturationStart2;
+    private Slider xstart;
     @FXML
-    private Slider saturationStop2;
+    private Slider xstop;
     @FXML
-    private Slider valueStart2;
+    private Slider ystart;
     @FXML
-    private Slider valueStop2;
+    private Slider ystop;
     // FXML label to show the current values set with the sliders
     @FXML
     private Label hsvValues;
@@ -214,13 +214,13 @@ public class Controller2 {
                             new Scalar(this.hueStop2.getValue(), this.saturationStop.getValue(), this.valueStop.getValue()), hueUpper);
 
 
-                    Core.addWeighted(hueLower,1.0, hueUpper, 1.0,0.0,hueStart);
+                    Core.addWeighted(hueLower,1.0, hueUpper, 1.0,0.0, hueStart);
 
-                    Scalar minValues = new Scalar(this.hueStart.getValue(), this.saturationStart.getValue(), this.valueStart.getValue());
-                    Scalar maxValues = new Scalar(this.hueStop.getValue(), this.saturationStop.getValue(), this.valueStop.getValue());
+                    Scalar minValues = new Scalar(this.hueStart1.getValue(), this.saturationStart.getValue(), this.valueStart.getValue());
+                    Scalar maxValues = new Scalar(this.hueStop1.getValue(), this.saturationStop.getValue(), this.valueStop.getValue());
 
-                    Scalar minValues2 = new Scalar(this.hueStart2.getValue(), this.saturationStart2.getValue(), this.valueStart2.getValue());
-                    Scalar maxValues2 = new Scalar(this.hueStop2.getValue(), this.saturationStop2.getValue(), this.valueStop2.getValue());
+  //                  Scalar minValues2 = new Scalar(this.hueStart2.getValue(), this.saturationStart2.getValue(), this.valueStart2.getValue());
+//                    Scalar maxValues2 = new Scalar(this.hueStop2.getValue(), this.saturationStop2.getValue(), this.valueStop2.getValue());
 
                     // Tilknyt HSV værdier
                     String valuesToPrint = "Hue range2: " + minValues.val[0] + "-" + maxValues.val[0]
@@ -234,7 +234,7 @@ public class Controller2 {
                     //Core.inRange(hsvImage, minValues2, maxValues2, mask);
 
                     // Opdater billedet oppe til højre i UI
-                    this.updateImageView(this.maskImage, Utils.mat2Image(mask));
+                    this.updateImageView(this.maskImage, Utils.mat2Image(hueStart));
 
 
                     // Morphological operators
@@ -245,7 +245,7 @@ public class Controller2 {
                     Mat erodeElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(4, 4));
 
                     // Forstørre elementet x gange
-                    Imgproc.dilate(mask, morhpOutput, dilateElement); // 1. gang
+                    Imgproc.dilate(hueStart, morhpOutput, dilateElement); // 1. gang
                     Imgproc.dilate(morhpOutput, morhpOutput, dilateElement); // 2. gang
                     Imgproc.dilate(morhpOutput, morhpOutput, dilateElement); // 2. gang
 
@@ -261,7 +261,10 @@ public class Controller2 {
                     //Mat drawing = Mat.zeros(cannyOutput.size(), CvType.CV_8UC3);
 
                     List<Moments> mu = new ArrayList<Moments>(contours.size());
-
+                    Imgproc.line(frame, new Point(xstart.getValue(), ystart.getValue()), new Point(xstop.getValue(), ystart.getValue()), new Scalar(0, 100, 100), 4);
+                    Imgproc.line(frame, new Point(xstart.getValue(), ystop.getValue()), new Point(xstop.getValue(), ystop.getValue()), new Scalar(0, 100, 100), 4);
+                    Imgproc.line(frame, new Point(xstart.getValue(), ystop.getValue()), new Point(xstart.getValue(), ystart.getValue()), new Scalar(0, 100, 100), 4);
+                    Imgproc.line(frame, new Point(xstop.getValue(), ystop.getValue()), new Point(xstop.getValue(), ystart.getValue()), new Scalar(0, 100, 100), 4);
                     for (int i = 0; i < contours.size(); i++) {
                         MatOfPoint temp_contour = contours.get(i);
                         MatOfPoint2f new_mat = new MatOfPoint2f(temp_contour.toArray());
@@ -275,21 +278,17 @@ public class Controller2 {
 
                         if (approxCurve_temp.toArray().length == 12) {
                             Point[] aa = approxCurve_temp.toArray(); //TODO her er Points til plus
-                            for(Point a : aa){
-                               // System.out.println(a.toString() + " Dette er point!");
-                                //Imgproc.putText(frame, a.toString(), a, Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
-
-                            }
                             int count = 1;
                             boolean cross = true;
                             for(Point a : aa){
-                                if(!((a.x>100 && a.x<400)&&(a.y>100 && a.y<300))) {
+                                if(!((a.x>xstart.getValue() && a.x<xstop.getValue())&&(a.y>ystart.getValue() && a.y<ystop.getValue()))) {
                                     cross = false;
                                 }
                                 else{
                                     String countString = count++ + "";
                                     System.out.println(a.x + ", " + a.y + " Dette er point!");
                                     Imgproc.putText(frame, countString, a, Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
+                                    Imgproc.circle(frame, a, 1, new Scalar(0,100,100),3, 8, 0);
 
                                 }
                             }
