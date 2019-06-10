@@ -53,8 +53,8 @@ public class Grid implements IDrawable {
     public Vector2D translatePos(Vector2D pos){
         pos = Vector2D.CopyOf(pos)
                 .subtract(offset) //Offset the point
-                .scale(scale) //Scale to actual grid size
-                .clamp(new Vector2D(0,0), new Vector2D(WIDTH, HEIGHT)); //Clamp inside grid bounds
+                .scale(scale); //Scale to actual grid size
+                //.clamp(new Vector2D(0,0), new Vector2D(WIDTH, HEIGHT)); //Clamp inside grid bounds
         return pos;
     }
 

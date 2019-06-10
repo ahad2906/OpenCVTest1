@@ -104,12 +104,12 @@ public class VisuController {
         for (Point p : robotPoints){
             robotPos.add(new Vector2D((float)p.x, (float)p.y));
         }
-        map.setRobot(createRobot(robotPos.toArray(new Vector2D[0]), grid));
+        map.setRobot(updateRobot(robotPos.toArray(new Vector2D[0]), grid));
 
+        //Update cross
         Point[] cPoints = otherController.getKryds();
-
-        if (cPoints != null && cPoints.length >= 12){
-            map.getCross().setCorners(grid.translatePositions(pointToVector(cPoints)));
+        if (cPoints != null && cPoints.length >=12){
+            map.setCross(updateCross(pointToVector(cPoints), grid));
         }
     }
 
@@ -162,13 +162,13 @@ public class VisuController {
         map.setNodes(nodes);
 
         //The Robot:
-        map.setRobot(createRobot(TestData.robotPos, grid));
+        //map.setRobot(updateRobot(TestData.robotPos, grid));
 
         //Obstacles
-        Kryds cross = new Kryds();
+        /*Kryds cross = new Kryds();
         cross.setColor(Colors.OBSTACLE);
         cross.setCorners(grid.translatePositions(TestData.cross));
-        map.setCross(cross);
+        map.setCross(cross);*/
 
         //Goals
         Set<Mål> goals = new HashSet<>();
@@ -206,8 +206,7 @@ public class VisuController {
         return new HashSet<>(Arrays.asList(balls));
     }
 
-    private Robot createRobot(Vector2D[] vA, Grid grid){
-        Robot robot = new Robot();
+    private Robot updateRobot(Vector2D[] vA, Grid grid){
         //Oversætter positionerne
         vA = grid.translatePositions(vA);
 
@@ -229,26 +228,108 @@ public class VisuController {
             }
         }
         vA = new Vector2D[]{
-                new Vector2D((bagpunkter[0].getX()+bagpunkter[1].getX())/2, (bagpunkter[0].getY()+bagpunkter[1].getY())/2),
+                new Vector2D(
+                        (bagpunkter[0].getX()+bagpunkter[1].getX())/2,
+                        (bagpunkter[0].getY()+bagpunkter[1].getY())/2),
                 forPunkt
         };
 
         //Finder midten af roboten
         Vector2D pos = new Vector2D((vA[0].getX()+vA[1].getX())/2, (vA[0].getY()+vA[1].getY())/2);
-        System.out.println(pos.getX()+", "+pos.getY());
-        robot.setPos(pos);
         //Finder robotens størrelse
-        float dist = Vector2D.Distance(vA[0], vA[1]);
-        System.out.println(dist);
-        robot.setWidth(grid.CELL_SPACING.getX()*1.5f);
-        robot.setHeight(grid.CELL_SPACING.getY()*1.5f);
+        float size = Vector2D.Distance(vA[0], vA[1]);
         //Finder robotens vinkel
         float angle = Vector2D.Angle(vA[0], vA[1]);
-        robot.setRotation(angle);
-        //Farven
-        robot.setColor(Colors.ROBOT);
+
+        Robot robot = map.getRobot();
+
+        //Hvis der ikkke findes nogen instans af robotten, så lav en
+        if(robot == null){
+            robot = new Robot();
+            //Farven
+            robot.setColor(Colors.ROBOT);
+
+            robot.setWidth(size*1.5f);
+            robot.setHeight(size*1.5f);
+
+            robot.setPos(pos);
+            robot.setRotation(angle);
+
+            return robot;
+        }
+
+        //Beregner ændringen siden sidste check
+        float pos_change = Vector2D.Distance(robot.getPos(), pos);
+        //Hvis den er for stor eller for lille ændres den ikke
+        if (pos_change > 2 && pos_change < 20){
+            robot.setPos(pos);
+
+            //Beregner ændringen i vinkeln siden sidst
+            float rot_change = robot.getRotation()-angle;
+            //Hvis den møder kriterierne ændres dennne
+            if (rot_change < 30 && rot_change > -30){
+                robot.setRotation(angle);
+            }
+        }
 
         return robot;
+    }
+
+    private Kryds updateCross(Vector2D[] vA, Grid grid){
+        vA = grid.translatePositions(vA);
+
+        Vector2D[] hor = {
+                Vector2D.Middle(vA[2],vA[3]),
+                Vector2D.Middle(vA[8],vA[9])
+        };
+
+        Vector2D[] ver = {
+                Vector2D.Middle(vA[5],vA[6]),
+                Vector2D.Middle(vA[0],vA[11])
+        };
+
+        Kryds cross = map.getCross();
+
+        Vector2D position = Vector2D.Middle(hor[0], hor[1]);
+
+        float rotation = Vector2D.Angle(hor[0], hor[1]);
+
+        if (cross == null){
+            cross = new Kryds();
+            cross.setColor(Colors.OBSTACLE);
+
+            /*float width = Vector2D.Distance(hor[0], hor[1]);
+            float height = Vector2D.Distance(ver[0], ver[1]);
+            cross.setWidth(width);
+            cross.setHeight(height);
+            cross.setPos(position);
+            cross.setRotation(rotation);
+
+            return cross;*/
+        }
+
+        float width = Vector2D.Distance(hor[0], hor[1]);
+        float height = Vector2D.Distance(ver[0], ver[1]);
+        cross.setWidth(width);
+        cross.setHeight(height);
+        cross.setPos(position);
+        cross.setRotation(rotation);
+        /*
+        //Beregner ændringen siden sidste check
+        float pos_change = Vector2D.Distance(cross.getPos(), position);
+        //Hvis den er for stor eller for lille ændres den ikke
+        if (pos_change > 2 && pos_change < 20){
+            cross.setPos(position);
+
+            //Beregner ændringen i vinkeln siden sidst
+            float rot_change = cross.getRotation()-rotation;
+            //Hvis den møder kriterierne ændres dennne
+            if (rot_change < 30 && rot_change > -30){
+                cross.setRotation(rotation);
+            }
+        }*/
+
+        return cross;
     }
 
     private Vector2D[] pointToVector(Point[] points){
