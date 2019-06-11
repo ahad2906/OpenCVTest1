@@ -275,13 +275,15 @@ public class Controller2 {
                     //Mat drawing = Mat.zeros(cannyOutput.size(), CvType.CV_8UC3);
 
 
-                    List<Moments> mu = new ArrayList<Moments>(contours.size());
+                    //List<Moments> mu = new ArrayList<Moments>(contours.size());
                     Imgproc.line(frame, new Point(xstart.getValue(), ystart.getValue()), new Point(xstop.getValue(), ystart.getValue()), new Scalar(0, 100, 100), 4);
                     Imgproc.line(frame, new Point(xstart.getValue(), ystop.getValue()), new Point(xstop.getValue(), ystop.getValue()), new Scalar(0, 100, 100), 4);
                     Imgproc.line(frame, new Point(xstart.getValue(), ystop.getValue()), new Point(xstart.getValue(), ystart.getValue()), new Scalar(0, 100, 100), 4);
                     Imgproc.line(frame, new Point(xstop.getValue(), ystop.getValue()), new Point(xstop.getValue(), ystart.getValue()), new Scalar(0, 100, 100), 4);
+                    System.out.println("contoursixe: " + contours.size());
                     for (int i = 0; i < contours.size(); i++) {
                         MatOfPoint temp_contour = contours.get(i);
+                        System.out.println("temp contour total: " + temp_contour.total());
                         MatOfPoint2f new_mat = new MatOfPoint2f(temp_contour.toArray());
                         int contourSize = (int) temp_contour.total();
                         // tegner contours (stregerne i cannyOutput)
@@ -291,14 +293,13 @@ public class Controller2 {
 
 
                         if (approxCurve_temp.toArray().length == 12) {
-                            Point[] aa = approxCurve_temp.toArray(); //TODO her er Points til plus
+                            Point[] aa = approxCurve_temp.toArray();
                             cross = aa;
                             int count = 1;
                             for(Point a : aa){
                                 if(((a.x>xstart.getValue() && a.x<xstop.getValue())&&(a.y>ystart.getValue() && a.y<ystop.getValue()))) {
 
                                     String countString = count++ + "";
-                                    System.out.println(a.x + ", " + a.y + " Dette er point!");
                                     Imgproc.putText(frame, countString, a, Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
                                     Imgproc.circle(frame, a, 1, new Scalar(0,100,100),3, 8, 0);
 
