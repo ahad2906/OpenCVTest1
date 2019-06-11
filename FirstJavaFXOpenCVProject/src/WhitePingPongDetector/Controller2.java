@@ -156,7 +156,7 @@ public class Controller2 {
             if (this.videoCapture.isOpened()) {
                 this.cameraActive = true;
 
-                // Fang et frame hvert 33'te ms (30 frame/s)
+                // Fang et frame hvert x'te ms (x frame/s)
                 Runnable frameGrabber = () -> {
                     // Fang og behandl et enkelt frame
                     Mat frame = grabFrame();
@@ -166,7 +166,7 @@ public class Controller2 {
 
                 this.timer = Executors.newSingleThreadScheduledExecutor();
                 // Her sættes framerate (Runnable, initialDelay, framerate, tidsenhed )
-                this.timer.scheduleAtFixedRate(frameGrabber, 0, 20, TimeUnit.MILLISECONDS);
+                this.timer.scheduleAtFixedRate(frameGrabber, 0, 1, TimeUnit.MILLISECONDS);
 
                 // Opdater knap indhold
                 this.button.setText("Stop Kamera");
