@@ -14,6 +14,7 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.imgproc.Moments;
 import org.opencv.videoio.VideoCapture;
 import sample.utils.Utils;
+import visualisering.VisuController;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,6 +91,18 @@ public class Controller2 {
         this.cross = cross;
     }
 
+    private VisuController visuController;
+
+    public void addVisuController(VisuController visuController) {
+        this.visuController = visuController;
+    }
+
+    public void update() {
+        Mat frame = grabFrame();
+        Image imageToShow = Utils.mat2Image(frame);
+        updateImageView(originalFrame, imageToShow);
+    }
+
     // Timer til at hente video stream
     private ScheduledExecutorService timer;
     // openCV objekt som realisere billedopfangning (optagelse)
@@ -156,7 +169,9 @@ public class Controller2 {
             if (this.videoCapture.isOpened()) {
                 this.cameraActive = true;
 
-                // Fang et frame hvert x'te ms (x frame/s)
+                update();
+                visuController.start();
+  /*              // Fang et frame hvert x'te ms (x frame/s)
                 Runnable frameGrabber = () -> {
                     // Fang og behandl et enkelt frame
                     Mat frame = grabFrame();
@@ -167,7 +182,7 @@ public class Controller2 {
                 this.timer = Executors.newSingleThreadScheduledExecutor();
                 // Her sættes framerate (Runnable, initialDelay, framerate, tidsenhed )
                 this.timer.scheduleAtFixedRate(frameGrabber, 0, 1, TimeUnit.MILLISECONDS);
-
+*/
                 // Opdater knap indhold
                 this.button.setText("Stop Kamera");
             } else {
@@ -298,7 +313,7 @@ public class Controller2 {
                                 if(((a.x>xstart.getValue() && a.x<xstop.getValue())&&(a.y>ystart.getValue() && a.y<ystop.getValue()))) {
 
                                     String countString = count++ + "";
-                                    System.out.println(a.x + ", " + a.y + " Dette er point!");
+                                  //  System.out.println(a.x + ", " + a.y + " Dette er point!");
                                     Imgproc.putText(frame, countString, a, Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
                                     Imgproc.circle(frame, a, 1, new Scalar(0,100,100),3, 8, 0);
 
@@ -531,7 +546,7 @@ public class Controller2 {
 
                     }
 
-                    System.out.println(circles.cols());
+                   // System.out.println(circles.cols());
 
 
                     this.updateImageView(this.cannyImage2, Utils.mat2Image(detectedEdges));

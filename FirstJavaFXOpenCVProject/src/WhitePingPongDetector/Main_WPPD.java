@@ -32,8 +32,10 @@ public class Main_WPPD extends Application {
             primaryStage.setScene(scene);
             primaryStage.show();
 
+
             // sæt den rigtige opførsel når applikationen lukkes ned
             Controller2 controller = loader.getController();
+//            controller.startCamera();
             primaryStage.setOnCloseRequest((new EventHandler<WindowEvent>() {
                 @Override
                 public void handle(WindowEvent event) {

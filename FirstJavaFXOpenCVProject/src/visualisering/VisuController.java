@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class VisuController {
-    private final int UPDATETIME = 120;
+    private final int UPDATETIME = 50;
     private int nbOfBalls = 2;
     Kort map;
     Path path;
@@ -62,7 +62,7 @@ public class VisuController {
                 if (cur - lastTime > UPDATETIME) {
                     lastTime = cur;
 
-                   // otherController.update();
+                    otherController.update();
                     //TODO: fetch data;
                     updatePositions();
 
@@ -95,7 +95,7 @@ public class VisuController {
             else ballOk = true;
 
             if (robotPoints == null || robotPoints.size() < 3){
-                ballPoints = otherController.grabFrameCirkel();
+                robotPoints = otherController.grabFrameRobotCirkel();
             }
             else robotOk = true;
 
@@ -233,12 +233,14 @@ public class VisuController {
                 bagpunkter[1] = vA[i+1];
             }
         }
+        System.out.println("Bagpunkter: " + bagpunkter[0].toString() + ", " + bagpunkter[1].toString());
         Vector2D forPunkt = Vector2D.ZERO;
         for (Vector2D v : vA){
             if (v != bagpunkter[0] && v != bagpunkter[1]){
                 forPunkt = v;
             }
         }
+        System.out.println("Forpunkt: " + forPunkt.toString());
         vA = new Vector2D[]{
                 new Vector2D(
                         (bagpunkter[0].getX()+bagpunkter[1].getX())/2,
@@ -261,8 +263,8 @@ public class VisuController {
             //Farven
             robot.setColor(Colors.ROBOT);
 
-            robot.setWidth(size*1.5f);
-            robot.setHeight(size*1.5f);
+            robot.setWidth(size/*1.5f*/);
+            robot.setHeight(size/*1.5f*/);
 
             robot.setPos(pos);
             robot.setRotation(angle);
