@@ -16,7 +16,7 @@ public class Robot extends SpaceObject implements IMovableObject, IDrawable, Upd
     private Color color;
     private Vector2D dest;
     private float speed;
-    private SpaceObject target;
+    private Vector2D target;
 
     @Override
     public void moveTo(Vector2D dest) {
@@ -64,13 +64,20 @@ public class Robot extends SpaceObject implements IMovableObject, IDrawable, Upd
         this.color = col;
     }
 
-    public void setTarget(SpaceObject target){
+    public void setTarget(Vector2D target){
         this.target = target;
-        turnToward(target.position);
     }
 
-    public SpaceObject getTarget(){
+    public Vector2D getTarget(){
         return target;
+    }
+
+    public float getAngleToTarget(){
+        return Vector2D.Angle(position, target);
+    }
+
+    public float getDIstToTarget(){
+        return Vector2D.Distance(position, dest);
     }
 
     public void turnToward(Vector2D point){

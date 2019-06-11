@@ -10,16 +10,20 @@ import visualisering.Space.Path;
 import visualisering.Space.Vector2D;
 import visualisering.View.Colors;
 import visualisering.View.Kort;
+import websocket.RobotController;
+import websocket.RobotSocket;
 
+import java.io.IOException;
 import java.util.*;
 
 public class VisuController {
     private final int UPDATETIME = 120;
-    private int nbOfBalls = 6;
+    private int nbOfBalls = 2;
     Kort map;
     Path path;
     private long lastTime;
     private Controller2 otherController;
+    private RobotController robotController;
     private boolean started = false;
 
     public VisuController(Controller2 other){
@@ -32,8 +36,11 @@ public class VisuController {
 
     public void start(){
         if (started) return;
-
         started = true;
+
+        robotController = new RobotController();
+        robotController.start();
+
         //Grid
         Grid grid = new Grid(map.getWIDTH(), map.getHEIGHT());
         Point[] points = otherController.getHjørner();
@@ -56,8 +63,13 @@ public class VisuController {
                     lastTime = cur;
 
                     otherController.update();
+                    //TODO: fetch data;
                     updatePositions();
-                    createPath();
+
+                    if (map.getRobot() != null) {
+                        createPath();
+                        robotController.setRobotTarget(path.getNext());
+                    }
 
                     //Draw map
                     map.update();
@@ -71,9 +83,9 @@ public class VisuController {
 
         //Fetch points
         List<Vector2D>  robotPos = new ArrayList<>();
-        List<Point> robotPoints = otherController.grabFrameRobotCirkel();
+        List<Point> robotPoints = otherController.grabFrameRobotCirkel(); //TODO: change it
         List<Vector2D> ballPos = new ArrayList<>();
-        List<Point> ballPoints = otherController.grabFrameCirkel();
+        List<Point> ballPoints = otherController.grabFrameCirkel(); //Todo: change it
         int i = 0;
         boolean robotOk = false, ballOk = false;
         while (true){
@@ -254,6 +266,8 @@ public class VisuController {
 
             robot.setPos(pos);
             robot.setRotation(angle);
+
+            robotController.setRobot(robot);
 
             return robot;
         }

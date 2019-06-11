@@ -7,6 +7,7 @@ import visualisering.View.IDrawable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 public class Path implements IDrawable {
     private List<Vector2D> path;
@@ -44,6 +45,10 @@ public class Path implements IDrawable {
 
     public void addPoint(@NotNull Vector2D point){
         path.add(point);
+    }
+
+    public Vector2D getNext(){
+        return path.get(1);
     }
 
     @Override
