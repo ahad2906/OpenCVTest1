@@ -36,13 +36,13 @@
             <Label text="X start" />
 
 
-            <Slider fx:id="xstart" min="0" max="500" value="0" blockIncrement="1" />
+            <Slider fx:id="xstart" min="0" max="500" value="50" blockIncrement="1" />
             <Label text="X stop" />
-            <Slider fx:id="xstop" min="0" max="700" value="0" blockIncrement="1" />
+            <Slider fx:id="xstop" min="0" max="700" value="600" blockIncrement="1" />
             <Label text="Y start" />
-            <Slider fx:id="ystart" min="0" max="500" value="0" blockIncrement="1" />
+            <Slider fx:id="ystart" min="0" max="500" value="50" blockIncrement="1" />
             <Label text="Y stop" />
-            <Slider fx:id="ystop" min="0" max="600" value="0" blockIncrement="1" />
+            <Slider fx:id="ystop" min="0" max="600" value="450" blockIncrement="1" />
         </VBox>
     </right>
     <center>
@@ -50,9 +50,9 @@
             <padding>
                 <Insets right="10" left="10"/>
             </padding>
-            <VBox alignment="CENTER" spacing="5">
+           <!-- <VBox alignment="CENTER" spacing="5">
                 <ImageView fx:id="originalFrame2"/>
-            </VBox>
+            </VBox> -->
             <VBox alignment="CENTER" spacing="5">
                 <ImageView fx:id="maskImage2"/>
                 <ImageView fx:id="cannyImage2"/>
