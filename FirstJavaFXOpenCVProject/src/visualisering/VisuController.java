@@ -43,7 +43,7 @@ public class VisuController {
 
         //Grid
         Grid grid = new Grid(map.getWIDTH(), map.getHEIGHT());
-        Point[] points = otherController.getHjørner();
+        Point[] points = otherController.getField();
         Vector2D[] vA = pointToVector(points);
 
         grid.setScale(vA[0], vA[1], vA[2], vA[3]);
@@ -62,7 +62,7 @@ public class VisuController {
                 if (cur - lastTime > UPDATETIME) {
                     lastTime = cur;
 
-                    otherController.update();
+                   // otherController.update();
                     //TODO: fetch data;
                     updatePositions();
 
@@ -119,7 +119,7 @@ public class VisuController {
         map.setRobot(updateRobot(robotPos.toArray(new Vector2D[0]), grid));
 
         //Update cross
-        Point[] cPoints = otherController.getKryds();
+        Point[] cPoints = otherController.getCross();
         if (cPoints != null && cPoints.length >=12){
             map.setCross(updateCross(pointToVector(cPoints), grid));
         }

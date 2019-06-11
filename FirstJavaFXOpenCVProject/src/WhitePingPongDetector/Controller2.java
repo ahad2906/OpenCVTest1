@@ -9,13 +9,11 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelFormat;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.imgproc.Moments;
 import org.opencv.videoio.VideoCapture;
 import sample.utils.Utils;
-import visualisering.VisuController;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +28,8 @@ public class Controller2 {
     private Button button;
     @FXML
     private ImageView originalFrame;
-    @FXML
-    private ImageView originalFrame2;
+    //@FXML
+    // private ImageView originalFrame2;
     @FXML
     private ImageView maskImage;
     @FXML
@@ -43,9 +41,9 @@ public class Controller2 {
     @FXML
     private ImageView cannyImage2;
     @FXML
-    private Slider hueStart;
+    private Slider hueStart1;
     @FXML
-    private Slider hueStop;
+    private Slider hueStop1;
     @FXML
     private Slider saturationStart;
     @FXML
@@ -54,9 +52,43 @@ public class Controller2 {
     private Slider valueStart;
     @FXML
     private Slider valueStop;
+    @FXML
+    private Slider hueStart2;
+    @FXML
+    private Slider hueStop2;
+    @FXML
+    private Slider xstart;
+    @FXML
+    private Slider xstop;
+    @FXML
+    private Slider ystart;
+    @FXML
+    private Slider ystop;
     // FXML label to show the current values set with the sliders
     @FXML
     private Label hsvValues;
+    @FXML
+    private Label hsvValues2;
+
+    private Point[] field = new Point[4];
+
+    private Point[] cross = new Point[12];
+
+    public Point[] getField() {
+        return field;
+    }
+
+    public void setField(Point[] field) {
+        this.field = field;
+    }
+
+    public Point[] getCross() {
+        return cross;
+    }
+
+    public void setCross(Point[] cross) {
+        this.cross = cross;
+    }
 
     // Timer til at hente video stream
     private ScheduledExecutorService timer;
@@ -70,30 +102,7 @@ public class Controller2 {
 
     // Variabel for at binde trackbars for HSV/RGB-værdier i FXML Scene
     private ObjectProperty<String> hsvValuesProp;
-
-    private Point[] hjørner;
-
-    private Point[] kryds;
-
-    private VisuController visuController;
-
-    public void addVisuController(VisuController visuController){
-        this.visuController = visuController;
-    }
-
-    public Point[] getHjørner(){
-        return hjørner;
-    }
-
-    public Point[] getKryds(){
-        return kryds;
-    }
-
-    public void update(){
-        Mat frame = grabFrame();
-        Image imageToShow = Utils.mat2Image(frame);
-        updateImageView(originalFrame, imageToShow);
-    }
+    private ObjectProperty<String> hsvValuesProp2;
 
     /**
      * Aktionen når knappen til at starte kameraet trykkes på GUI
@@ -106,10 +115,13 @@ public class Controller2 {
         hsvValuesProp = new SimpleObjectProperty<>();
         this.hsvValues.textProperty().bind(hsvValuesProp);
 
+        hsvValuesProp2 = new SimpleObjectProperty<>();
+        this.hsvValues2.textProperty().bind(hsvValuesProp2);
+
         // Set a fixed width for all the image to show and preserve image ratio
         // Frame til boldene
-        this.imageViewProperties(this.originalFrame2, 600);
-        Tooltip.install(originalFrame2, new Tooltip("Original frame2 til boldene"));
+        //this.imageViewProperties(this.originalFrame2, 600);
+        //Tooltip.install(originalFrame2, new Tooltip("Original frame2 til boldene"));
 
         // Frame til mask output af originalFrame2 (til boldene)
         this.imageViewProperties(this.maskImage2, 200);
@@ -135,6 +147,7 @@ public class Controller2 {
         this.imageViewProperties(this.cannyImage, 200);
         Tooltip.install(cannyImage, new Tooltip("Canny frame (banen)"));
 
+
         if (!this.cameraActive) {
             // Start videooptagelse
             this.videoCapture.open(cameraID);
@@ -143,8 +156,17 @@ public class Controller2 {
             if (this.videoCapture.isOpened()) {
                 this.cameraActive = true;
 
-                update();
-                visuController.start();
+                // Fang et frame hvert x'te ms (x frame/s)
+                Runnable frameGrabber = () -> {
+                    // Fang og behandl et enkelt frame
+                    Mat frame = grabFrame();
+                    Image imageToShow = Utils.mat2Image(frame);
+                    updateImageView(originalFrame, imageToShow);
+                };
+
+                this.timer = Executors.newSingleThreadScheduledExecutor();
+                // Her sættes framerate (Runnable, initialDelay, framerate, tidsenhed )
+                this.timer.scheduleAtFixedRate(frameGrabber, 0, 1, TimeUnit.MILLISECONDS);
 
                 // Opdater knap indhold
                 this.button.setText("Stop Kamera");
@@ -176,11 +198,14 @@ public class Controller2 {
                 this.videoCapture.read(frame);
                 // Hvis frame ikke er tomt, behandl det
                 if (!frame.empty()) {
+                    //Find punkter til bolde/bander/Robot/Kors
+                    ArrayList<Point> balls = grabFrameCirkel();
+                    ArrayList<Point> robotPoints = grabFrameRobotCirkel();
 
-                    //grabFrameCirkel();
-
+                    //grabFrameCirkel()
                     // openCV objekt, brug til HSV konvertiering
                     Mat hsvImage = new Mat();
+                    //hsvConverter(frame, hsvImage);
                     hsvConverter(frame, hsvImage);
 
                     // Slørre billedet
@@ -193,32 +218,48 @@ public class Controller2 {
 
                     // Henter threshold værdier fra UI
                     // Bemærk: H [0-180], S og V [0-255]
-                    Scalar minValues = new Scalar(this.hueStart.getValue(), this.saturationStart.getValue(), this.valueStart.getValue());
-                    Scalar maxValues = new Scalar(this.hueStop.getValue(), this.saturationStop.getValue(), this.valueStop.getValue());
+                    Mat hueStart = new Mat();
+                    Mat hueLower = new Mat();
+                    Mat hueUpper = new Mat();
+                    Core.inRange(hsvImage,new Scalar(this.hueStart1.getValue(),this.saturationStart.getValue(), this.valueStart.getValue()),
+                            new Scalar(this.hueStop1.getValue(), this.saturationStop.getValue(), this.valueStop.getValue()), hueLower);
+                    Core.inRange(hsvImage,new Scalar(this.hueStart2.getValue(),this.saturationStart.getValue(), this.valueStart.getValue()),
+                            new Scalar(this.hueStop2.getValue(), this.saturationStop.getValue(), this.valueStop.getValue()), hueUpper);
+
+
+                    Core.addWeighted(hueLower,1.0, hueUpper, 1.0,0.0, hueStart);
+
+                    Scalar minValues = new Scalar(this.hueStart1.getValue(), this.saturationStart.getValue(), this.valueStart.getValue());
+                    Scalar maxValues = new Scalar(this.hueStop1.getValue(), this.saturationStop.getValue(), this.valueStop.getValue());
+
+                    //                  Scalar minValues2 = new Scalar(this.hueStart2.getValue(), this.saturationStart2.getValue(), this.valueStart2.getValue());
+//                    Scalar maxValues2 = new Scalar(this.hueStop2.getValue(), this.saturationStop2.getValue(), this.valueStop2.getValue());
 
                     // Tilknyt HSV værdier
-                    String valuesToPrint = "Hue range: " + minValues.val[0] + "-" + maxValues.val[0]
-                            + "\tSaturation range: " + minValues.val[1] + "-" + maxValues.val[1]
-                            + "\tValue range: " + minValues.val[2] + "-" + maxValues.val[2];
-                    WhitePingPongDetector.Utils.Utils.onFXThread(this.hsvValuesProp, valuesToPrint);
+                    String valuesToPrint = "Hue range2: " + minValues.val[0] + "-" + maxValues.val[0]
+                            + "\tSaturation range2: " + minValues.val[1] + "-" + maxValues.val[1]
+                            + "\tValue range2: " + minValues.val[2] + "-" + maxValues.val[2];
+                    WhitePingPongDetector.Utils.Utils.onFXThread(this.hsvValuesProp2, valuesToPrint);
 
                     // Udvælger elementer fra udvalgte RBG/HSV-range og konverterer til hvid farve i nye frame
                     Mat mask = new Mat();
                     Core.inRange(hsvImage, minValues, maxValues, mask);
+                    //Core.inRange(hsvImage, minValues2, maxValues2, mask);
 
                     // Opdater billedet oppe til højre i UI
-                    this.updateImageView(this.maskImage, Utils.mat2Image(mask));
+                    this.updateImageView(this.maskImage, Utils.mat2Image(hueStart));
 
 
                     // Morphological operators
                     // Dilate = elementer af størrelse (x*x)pixel (gør objekt større)
                     // Erode  = elementer af størrelse (x*x)pixel (gør objekt mindre)
                     Mat morhpOutput = new Mat();
-                    Mat dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(4,4));
-                    Mat erodeElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(10,10));
+                    Mat dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(2, 2));
+                    Mat erodeElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(4, 4));
 
                     // Forstørre elementet x gange
-                    Imgproc.dilate(mask, morhpOutput, dilateElement); // 1. gang
+                    Imgproc.dilate(hueStart, morhpOutput, dilateElement); // 1. gang
+                    Imgproc.dilate(morhpOutput, morhpOutput, dilateElement); // 2. gang
                     Imgproc.dilate(morhpOutput, morhpOutput, dilateElement); // 2. gang
 
                     // Tegner streger/kanter af elementer i framet
@@ -228,74 +269,98 @@ public class Controller2 {
                     List<MatOfPoint> contours = new ArrayList<>();
                     Mat hierarchy = new Mat();
                     //Imgproc.findContours(cannyOutput, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
-                    Imgproc.findContours(mask, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
+                    Imgproc.findContours(morhpOutput, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
+                    //ArrayList<Point> fieldPoints = grabFrameField(contours);
 
                     //Mat drawing = Mat.zeros(cannyOutput.size(), CvType.CV_8UC3);
 
-                    List<Moments> mu = new ArrayList<Moments>(contours.size());
 
-                    for (int i=0; i< contours.size(); i++) {
+                    List<Moments> mu = new ArrayList<Moments>(contours.size());
+                    Imgproc.line(frame, new Point(xstart.getValue(), ystart.getValue()), new Point(xstop.getValue(), ystart.getValue()), new Scalar(0, 100, 100), 4);
+                    Imgproc.line(frame, new Point(xstart.getValue(), ystop.getValue()), new Point(xstop.getValue(), ystop.getValue()), new Scalar(0, 100, 100), 4);
+                    Imgproc.line(frame, new Point(xstart.getValue(), ystop.getValue()), new Point(xstart.getValue(), ystart.getValue()), new Scalar(0, 100, 100), 4);
+                    Imgproc.line(frame, new Point(xstop.getValue(), ystop.getValue()), new Point(xstop.getValue(), ystart.getValue()), new Scalar(0, 100, 100), 4);
+                    for (int i = 0; i < contours.size(); i++) {
                         MatOfPoint temp_contour = contours.get(i);
-                        MatOfPoint2f new_mat = new MatOfPoint2f( temp_contour.toArray() );
-                        int contourSize = (int)temp_contour.total();
+                        MatOfPoint2f new_mat = new MatOfPoint2f(temp_contour.toArray());
+                        int contourSize = (int) temp_contour.total();
                         // tegner contours (stregerne i cannyOutput)
                         MatOfPoint2f approxCurve_temp = new MatOfPoint2f();
-                        Imgproc.approxPolyDP(new_mat, approxCurve_temp, contourSize*0.05, true);
-                        MatOfPoint points = new MatOfPoint( approxCurve_temp.toArray() );
+                        Imgproc.approxPolyDP(new_mat, approxCurve_temp, contourSize * 0.05, true);
+                        MatOfPoint points = new MatOfPoint(approxCurve_temp.toArray());
 
-                        String shape;
 
                         if (approxCurve_temp.toArray().length == 12) {
-                            kryds = approxCurve_temp.toArray();
+                            Point[] aa = approxCurve_temp.toArray(); //TODO her er Points til plus
+                            cross = aa;
+                            int count = 1;
+                            for(Point a : aa){
+                                if(((a.x>xstart.getValue() && a.x<xstop.getValue())&&(a.y>ystart.getValue() && a.y<ystop.getValue()))) {
 
+                                    String countString = count++ + "";
+                                    System.out.println(a.x + ", " + a.y + " Dette er point!");
+                                    Imgproc.putText(frame, countString, a, Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
+                                    Imgproc.circle(frame, a, 1, new Scalar(0,100,100),3, 8, 0);
 
-                            for(Point a : kryds){
-                                System.out.println(a.toString() + " Dette er point!");
+                                }
                             }
-                            mu.add(i, Imgproc.moments(contours.get(i), false));
-                            Moments p = mu.get(i);
-                            int x = (int) (p.get_m10() / p.get_m00());
-                            int y = (int) (p.get_m01() / p.get_m00());
-                            String koordCentrum = x - 20 + "," + (y - 20);
-                            Imgproc.putText(frame, koordCentrum, new Point(x - 20, y - 20), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
-                            shape = "plus";
-                            System.out.println(shape);
-                            Imgproc.drawContours(frame, contours, -1, new Scalar(255, 0, 0), 2);
 
                         }
+                        if (approxCurve_temp.toArray().length == 4) {
+                            Rect rect = Imgproc.boundingRect(points);
+                            // Imgproc.drawContours(destinationFrame, sourceFrameWithContours)
+                            // Imgproc.drawContours(frame, contours, i, color, 5, 8, hierarchy, 0, new Point());
+                            //double k =
+                            // Tegn firkant, hvis bredde og højde krav er opfyldt
+                            if (Math.abs(rect.width) > 400 && Math.abs(rect.height) > 200) {
+                                // tegner firkant med (x,y)-koordinater
+                                // Imgproc.rectangle(frame, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(170, 0, 150, 150), 8);
 
-                        Rect rect = Imgproc.boundingRect(points);
-                        // Imgproc.drawContours(destinationFrame, sourceFrameWithContours)
-                        // Imgproc.drawContours(frame, contours, i, color, 5, 8, hierarchy, 0, new Point());
-                        // Tegn firkant, hvis bredde og højde krav er opfyldt
-                        if(Math.abs(rect.width) > 400 && Math.abs(rect.height) > 200) {
-                            // tegner firkant med (x,y)-koordinater
-                            Imgproc.rectangle(frame, new Point(rect.x+20, rect.y+20), new Point(rect.x + rect.width-20, rect.y + rect.height-20), new Scalar(170, 0, 150, 0), 15);
-                            // gem koordinaterne
-                            //TODO Koordinater til banen
-                            String koord = rect.x+20 + "," + (rect.y+20);
-                            String koord1 = rect.x + rect.width-20 + "," + (rect.y + rect.height-20);
-                            String koord2 = rect.x+20 + "," + (rect.y + rect.height-20);
-                            String koord3 = rect.x + rect.width-20 + "," + (rect.y);
+                                Point[] as = approxCurve_temp.toArray();
+                                field = as; //Giver field fieldet sine koordinater
+                                for(Point aaa : as) {
+                                    String countString = aaa.toString();
 
-                            hjørner = new Point[]{
-                                    new Point(rect.x+20, rect.y+20),
-                                    new Point(rect.x + rect.width-20 ,rect.y),
-                                    new Point(rect.x + rect.width-20 , rect.y + rect.height-20),
-                                    new Point(rect.x+20 ,rect.y + rect.height-20)
-                            };
+                                    Imgproc.putText(frame, countString, aaa, Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
+                                    Imgproc.circle(frame, aaa, 5, new Scalar(0, 225, 100), 3, 8, 0);
 
-                            // print koordinaterne ud på billdet
-                            Imgproc.putText(frame, koord, new Point(rect.x, rect.y), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
-                            Imgproc.putText(frame, koord1, new Point(rect.x+rect.width, rect.y+rect.height), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
-                            Imgproc.putText(frame, koord2, new Point(rect.x, rect.y+rect.height), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
-                            Imgproc.putText(frame, koord3, new Point(rect.x+rect.width, rect.y), Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+
+
+                                    // gem koordinaterne
+                                    //TODO Koordinater til banen
+                                    String koord = rect.x + 20 + "," + (rect.y + 20);
+                                    String koord1 = rect.x + rect.width - 20 + "," + (rect.y + rect.height - 20);
+                                    String koord2 = rect.x + 20 + "," + (rect.y + rect.height - 20);
+                                    String koord3 = rect.x + rect.width - 20 + "," + (rect.y);
+
+                                }
+                            }
                         }
 
                     }
-                    // opdater billedet nede til højre i UI
+                    Imgproc.drawContours(frame, contours, -1, new Scalar(255, 0, 0), 2);
+
+                    //Tregn bolde
+                    for (Point p : balls) {
+                        int radius = 10;
+                        Imgproc.circle(frame, p, radius, new Scalar(225, 0, 225), 3, 8 ,0);
+                        String koord = p.toString();
+                        Imgproc.putText(frame,koord, p, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                        Imgproc.circle(frame, p, 1, new Scalar(0,100,100), 3, 8, 0);
+                    }
+                    //tegn robotpunter
+                    for (Point p : robotPoints) {
+                        int radius = 20;
+                        Imgproc.circle(frame, p, radius, new Scalar(0, 0, 225), 3, 8 ,0);
+                        String koord = p.toString();
+                        Imgproc.putText(frame,koord, p, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                        Imgproc.circle(frame, p, 1, new Scalar(0,100,100), 3, 8, 0);
+                    }
+
+
+                    // opdater billedet midt til højre i UI
                     this.updateImageView(this.morphImage, Utils.mat2Image(morhpOutput));
-                    // opdater billedet nede til venstre i UI
+                    // opdater billedet nede til højre i UI
                     this.updateImageView(this.cannyImage, Utils.mat2Image(cannyOutput));
                 }
             } catch (Exception e) {
@@ -304,6 +369,61 @@ public class Controller2 {
             }
         }
         return frame;
+    }
+
+    private ArrayList<Point> grabFrameField(List<MatOfPoint> contours) {
+        Mat frame = new Mat();
+
+        // Tjek om videooptagelse er åben
+        if (this.videoCapture.isOpened()) {
+            try {
+                this.videoCapture.read(frame);
+                // hvis frame ikke er tomt, behandl det
+                if (!frame.empty()) {
+                    List<Moments> mu = new ArrayList<Moments>(contours.size());
+                    Imgproc.line(frame, new Point(xstart.getValue(), ystart.getValue()), new Point(xstop.getValue(), ystart.getValue()), new Scalar(0, 100, 100), 4);
+                    Imgproc.line(frame, new Point(xstart.getValue(), ystop.getValue()), new Point(xstop.getValue(), ystop.getValue()), new Scalar(0, 100, 100), 4);
+                    Imgproc.line(frame, new Point(xstart.getValue(), ystop.getValue()), new Point(xstart.getValue(), ystart.getValue()), new Scalar(0, 100, 100), 4);
+                    Imgproc.line(frame, new Point(xstop.getValue(), ystop.getValue()), new Point(xstop.getValue(), ystart.getValue()), new Scalar(0, 100, 100), 4);
+                    ArrayList<Point> returnValue = new ArrayList<>();
+                    for (int i = 0; i < contours.size(); i++) {
+                        MatOfPoint temp_contour = contours.get(i);
+                        MatOfPoint2f new_mat = new MatOfPoint2f(temp_contour.toArray());
+                        int contourSize = (int) temp_contour.total();
+                        // tegner contours (stregerne i cannyOutput)
+                        MatOfPoint2f approxCurve_temp = new MatOfPoint2f();
+                        Imgproc.approxPolyDP(new_mat, approxCurve_temp, contourSize * 0.05, true);
+                        MatOfPoint points = new MatOfPoint(approxCurve_temp.toArray());
+
+                        String shape;
+
+                        if (approxCurve_temp.toArray().length == 4) {
+                            /*Rect rect = Imgproc.boundingRect(points);
+                            // Imgproc.drawContours(destinationFrame, sourceFrameWithContours)
+                            // Imgproc.drawContours(frame, contours, i, color, 5, 8, hierarchy, 0, new Point());
+                            // Tegn firkant, hvis bredde og højde krav er opfyldt
+                            if (Math.abs(rect.width) > 400 && Math.abs(rect.height) > 300) {
+                                // tegner firkant med (x,y)-koordinater
+                                Imgproc.rectangle(frame, new Point(rect.x + 20, rect.y + 20), new Point(rect.x + rect.width - 20, rect.y + rect.height - 20), new Scalar(170, 0, 150, 0), 2);
+                                // gem koordinaterne
+                                //TODO Koordinater til banen
+                                String koord = rect.x + 20 + "," + (rect.y + 20);
+                                String koord1 = rect.x + rect.width - 20 + "," + (rect.y + rect.height - 20);
+                                String koord2 = rect.x + 20 + "," + (rect.y + rect.height - 20);
+                                String koord3 = rect.x + rect.width - 20 + "," + (rect.y);
+                            }*/
+                            return returnValue;
+                        }
+
+                    }
+                }
+
+            }
+            catch(Exception e){
+                System.out.println("Ikke muligt at finde banen");
+            }
+        }
+        return null;
     }
 
     /**
@@ -325,6 +445,17 @@ public class Controller2 {
      */
     Mat hsvConverter(Mat inputFrame, Mat outputFrame) {
         Imgproc.cvtColor(inputFrame, outputFrame, Imgproc.COLOR_BGR2HSV);
+        return outputFrame;
+    }
+
+    /**
+     * Konverter inputFrame til HSV i outputFrame
+     * @param inputFrame
+     * @param outputFrame
+     * @return outputFrame
+     */
+    Mat hslConverter(Mat inputFrame, Mat outputFrame) {
+        Imgproc.cvtColor(inputFrame, outputFrame, Imgproc.COLOR_BGR2HLS);
         return outputFrame;
     }
 
@@ -390,12 +521,12 @@ public class Controller2 {
                         double[] c = circles.get(0, i);
                         System.out.println(i + ": " + Math.round(c[0]) + ", " + Math.round(c[1]));
                         Point center = new Point(Math.round(c[0]), Math.round(c[1]));
-                        Imgproc.circle(frame, center, 1, new Scalar(0,100,100), 3, 8, 0);
+                        // Imgproc.circle(frame, center, 1, new Scalar(0,100,100), 3, 8, 0);
                         int radius = (int) Math.round(c[2]);
 
-                        Imgproc.circle(frame, center, radius, new Scalar(225, 0, 225), 3, 8 ,0);
+                        /*Imgproc.circle(frame, center, radius, new Scalar(225, 0, 225), 3, 8 ,0);
                         String koord = Math.round(c[0]) + ": " + Math.round(c[1]);
-                        Imgproc.putText(frame, koord, center, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                        Imgproc.putText(frame, koord, center, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);*/
                         returnValue.add(center);
 
                     }
@@ -404,7 +535,7 @@ public class Controller2 {
 
 
                     this.updateImageView(this.cannyImage2, Utils.mat2Image(detectedEdges));
-                    this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
+                    //this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
 
 
                     return returnValue;
@@ -465,27 +596,26 @@ public class Controller2 {
 
 
                     this.updateImageView(this.cannyImage2, Utils.mat2Image(detectedEdges));
-                    this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
+                    //this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
 
                     Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT, 1, 10, 19, 18, 15, 20);
                     ArrayList<Point> returnValue = new ArrayList<>();
                     for(int i = 0; i < circles.cols(); i++) {
                         double[] c = circles.get(0, i);
-                        System.out.println(i + ": " + Math.round(c[0]) + ", " + Math.round(c[1]));
+                        //System.out.println(i + ": " + Math.round(c[0]) + ", " + Math.round(c[1]));
                         Point center = new Point(Math.round(c[0]), Math.round(c[1]));
-                        Imgproc.circle(frame, center, 1, new Scalar(0,100,100), 3, 8, 0);
+                       /* Imgproc.circle(frame, center, 1, new Scalar(0,100,100), 3, 8, 0);
                         int radius = (int) Math.round(c[2]);
-
-                        Imgproc.circle(frame, center, radius, new Scalar(0, 0, 225), 3, 8 ,0);
+                        /*Imgproc.circle(frame, center, radius, new Scalar(0, 0, 225), 3, 8 ,0);
                         String koord = Math.round(c[0]) + ": " + Math.round(c[1]);
-                        Imgproc.putText(frame, koord, center, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                        Imgproc.putText(frame, koord, center, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);*/
                         returnValue.add(center);
                     }
 
                     System.out.println(circles.cols());
 
                     this.updateImageView(this.cannyImage2, Utils.mat2Image(detectedEdges));
-                    this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
+                    //this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
 
 
                     return returnValue;
@@ -567,7 +697,7 @@ public class Controller2 {
                     System.out.println(circles.cols());
 
                     this.updateImageView(this.cannyImage2, Utils.mat2Image(detectedEdges));
-                    this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
+                    //this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
                     return returnValue;
 
                 }
