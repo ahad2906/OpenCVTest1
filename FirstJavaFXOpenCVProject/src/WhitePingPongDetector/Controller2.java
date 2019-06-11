@@ -70,6 +70,26 @@ public class Controller2 {
     @FXML
     private Label hsvValues2;
 
+    private Point[] field = new Point[4];
+
+    private Point[] cross = new Point[12];
+
+    public Point[] getField() {
+        return field;
+    }
+
+    public void setField(Point[] field) {
+        this.field = field;
+    }
+
+    public Point[] getCross() {
+        return cross;
+    }
+
+    public void setCross(Point[] cross) {
+        this.cross = cross;
+    }
+
     // Timer til at hente video stream
     private ScheduledExecutorService timer;
     // openCV objekt som realisere billedopfangning (optagelse)
@@ -269,17 +289,14 @@ public class Controller2 {
                         Imgproc.approxPolyDP(new_mat, approxCurve_temp, contourSize * 0.05, true);
                         MatOfPoint points = new MatOfPoint(approxCurve_temp.toArray());
 
-                        String shape;
 
                         if (approxCurve_temp.toArray().length == 12) {
                             Point[] aa = approxCurve_temp.toArray(); //TODO her er Points til plus
+                            cross = aa;
                             int count = 1;
-                            boolean cross = true;
                             for(Point a : aa){
-                                if(!((a.x>xstart.getValue() && a.x<xstop.getValue())&&(a.y>ystart.getValue() && a.y<ystop.getValue()))) {
-                                    cross = false;
-                                }
-                                else{
+                                if(((a.x>xstart.getValue() && a.x<xstop.getValue())&&(a.y>ystart.getValue() && a.y<ystop.getValue()))) {
+
                                     String countString = count++ + "";
                                     System.out.println(a.x + ", " + a.y + " Dette er point!");
                                     Imgproc.putText(frame, countString, a, Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
@@ -287,17 +304,7 @@ public class Controller2 {
 
                                 }
                             }
-                            /*if(cross) {
-                                mu.add(i, Imgproc.moments(contours.get(i), false));
-                                Moments p = mu.get(i);
-                                int x = (int) (p.get_m10() / p.get_m00());
-                                int y = (int) (p.get_m01() / p.get_m00());
-                                String koordCentrum = x - 20 + "," + (y - 20);
-                                Imgproc.putText(frame, koordCentrum, new Point(x - 20, y - 20), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
-                                shape = "plus";
-                                System.out.println(shape);
-                                //Imgproc.drawContours(frame, contours, -1, new Scalar(255, 0, 0), 2);
-                            }*/
+
                         }
                         if (approxCurve_temp.toArray().length == 4) {
                             Rect rect = Imgproc.boundingRect(points);
@@ -310,24 +317,13 @@ public class Controller2 {
                                // Imgproc.rectangle(frame, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(170, 0, 150, 150), 8);
 
                                 Point[] as = approxCurve_temp.toArray();
+                                field = as; //Giver field fieldet sine koordinater
                                 for(Point aaa : as) {
                                     String countString = aaa.toString();
 
                                     Imgproc.putText(frame, countString, aaa, Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
                                     Imgproc.circle(frame, aaa, 5, new Scalar(0, 225, 100), 3, 8, 0);
 
-
-                                /*
-                                Imgproc.line(frame, aaa.get(0),aaa.get(1),new Scalar(0,250,0), 20);
-                                Imgproc.line(frame, aaa.get(1),aaa.get(2),new Scalar(0,250,0), 20);
-                                Imgproc.line(frame, aaa.get(2),aaa.get(3),new Scalar(0,250,0), 20);
-                                Imgproc.line(frame, aaa.get(3),aaa.get(0),new Scalar(0,250,0), 20);
-/*
-                                Imgproc.line(frame, new Point(rect.x, rect.y),new Point(rect.x + rect.width, rect.y),new Scalar(0,250,0), 20);
-                                Imgproc.line(frame, new Point(rect.x, rect.y),new Point(rect.x, rect.y + rect.height),new Scalar(0,250,0), 20);
-                                Imgproc.line(frame, new Point(rect.x, rect.y + rect.height),new Point(rect.x + rect.width, rect.y + rect.height),new Scalar(0,250,0), 20);
-                                Imgproc.line(frame, new Point(rect.x + rect.width, rect.y),new Point(rect.x + rect.width, rect.y + rect.height),new Scalar(0,250,0), 20);
-*/
 
 
                                     // gem koordinaterne

@@ -21,7 +21,7 @@
             <Label text="Hue Stop" />
             <Slider fx:id="hueStop1" min="0" max="180" value="12" blockIncrement="1" />
             <Label text="Saturation Start" />
-            <Slider fx:id="saturationStart" min="0" max="255" value="100" blockIncrement="1" />
+            <Slider fx:id="saturationStart" min="0" max="255" value="80" blockIncrement="1" />
             <Label text="Saturation Stop" />
             <Slider fx:id="saturationStop" min="0" max="255" value="255" blockIncrement="1" />
             <Label text="Value Start" />
