@@ -8,7 +8,7 @@ import visualisering.View.IDrawable;
 /**
  * Represents a coordinate system grid
  * @author DFallingHammer
- * @version 1.0.3
+ * @version 1.0.4
  */
 public class Grid implements IDrawable {
     final float WIDTH, HEIGHT;
@@ -28,12 +28,42 @@ public class Grid implements IDrawable {
 
     /**
      * Sets the scale of the grid compared to original points
-     * @param topLeft top left corner
-     * @param topRight top right corner
-     * @param bottomRight bottom right corner
-     * @param bottomLeft bottom left corner
+     * @param corners corners
      */
-    public void setScale(Vector2D topLeft, Vector2D topRight, Vector2D bottomRight, Vector2D bottomLeft){
+    public void setScale(Vector2D[] corners){
+        //First find the corners
+        int mg = 20;//Margin
+
+        Vector2D topLeft = corners[0];
+        for (int i = 1; i < corners.length; i++){
+            if (corners[i].getY() < topLeft.getY()+mg && corners[i].getX() < topLeft.getX()+mg){
+                topLeft = corners[i];
+            }
+        }
+
+        Vector2D topRight = corners[0];
+        for (int i = 1; i < corners.length; i++){
+            if (corners[i].getY() < topRight.getY()+mg && corners[i].getX() > topRight.getX()-mg){
+                topRight = corners[i];
+            }
+        }
+
+        Vector2D bottomLeft = corners[0];
+        for (int i = 1; i < corners.length; i++){
+            if (corners[i].getY() > bottomLeft.getY()-mg && corners[i].getX() < bottomLeft.getX()+mg){
+                bottomLeft = corners[i];
+            }
+        }
+
+        Vector2D bottomRight = corners[0];
+        for (int i = 1; i < corners.length; i++){
+            if (corners[i].getY() > bottomRight.getY()-mg && corners[i].getX() > bottomRight.getX()-mg){
+                bottomRight = corners[i];
+            }
+        }
+
+        System.out.println("TL: "+topLeft+" TR: "+topRight+" BL: "+bottomLeft+" BR: "+bottomRight);
+
         float w, h;
         w = (topRight.getX() + bottomRight.getX() - (topLeft.getX() + bottomLeft.getX()))/2f;
         h = (bottomRight.getY() + bottomLeft.getY() - (topLeft.getY() + topRight.getY()))/2f;

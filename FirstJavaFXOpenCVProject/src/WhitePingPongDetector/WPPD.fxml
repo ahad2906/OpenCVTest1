@@ -73,6 +73,7 @@
                 <Insets bottom="25" left="25" right="25" top="25"/>
             </padding>
             <Button fx:id="button" alignment="CENTER" onAction="#startCamera" text="Start Camera" />
+            <Button fx:id="button2" alignment="CENTER" onAction="#startTracking" text="Start Tracking" />
             <Separator />
             <Label fx:id="hsvValues"/>
             <Separator />

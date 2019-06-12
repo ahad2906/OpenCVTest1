@@ -77,7 +77,7 @@ public class Robot extends SpaceObject implements IMovableObject, IDrawable, Upd
     }
 
     public float getDIstToTarget(){
-        return Vector2D.Distance(position, dest);
+        return Vector2D.Distance(position, target);
     }
 
     public void turnToward(Vector2D point){

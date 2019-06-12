@@ -1,49 +1,69 @@
 package websocket;
 
+import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
 
 public class RobotSocket {
     Socket clientSocket;
     DataOutputStream outToServer;
+    BufferedReader inFromServer;
     private static final String
-            FORWARD = "fremkor %d",
-            SLOW_FORWARD = "langfremkor %d",
-            BACKWARD = "tilbagekor %d",
-            TURN = "drej %d",
+            FORWARD = "fremkor ",
+            SLOW_FORWARD = "langfremkor ",
+            BACKWARD = "tilbagekor ",
+            TURN = "drej ",
             SUCK = "e",
             BLOW = "r",
             MUSIC = "sound";
+    private boolean sucking;
 
     public void start() throws IOException {
         clientSocket = new Socket("172.20.10.9", 6789);
         outToServer = new DataOutputStream(clientSocket.getOutputStream());
-        sendMessage(SUCK);
+        inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
     }
 
     private void sendMessage(String msg) throws IOException {
         outToServer.writeBytes(msg + "\n");
+        System.out.println("from server : "+inFromServer.readLine().toString());
     }
 
     public void driveForward(float dist) throws IOException {
-        sendMessage(String.format(FORWARD, dist));
+        sendMessage(FORWARD+dist);
     }
 
     public void driveSlowForward(float dist) throws IOException {
-        sendMessage(String.format(SLOW_FORWARD, dist));
+        sendMessage(SLOW_FORWARD+dist);
     }
 
     public void driveBackward(float dist) throws  IOException {
-        sendMessage(String.format(BACKWARD, dist));
+        sendMessage(BACKWARD+dist);
     }
 
     public void turn(float angle) throws IOException {
-        sendMessage((String.format(TURN, angle)));
+        sendMessage((TURN+angle));
+    }
+
+    public void suck() throws IOException {
+        if (!sucking){
+            sendMessage(SUCK);
+            sucking = true;
+        }
+    }
+
+    public void blow() throws IOException {
+        sucking = false;
+        sendMessage(BLOW);
     }
 
     public void close() throws IOException {
         outToServer.close();
         clientSocket.close();
+        inFromServer.close();
+
+        sucking = false;
     }
 }

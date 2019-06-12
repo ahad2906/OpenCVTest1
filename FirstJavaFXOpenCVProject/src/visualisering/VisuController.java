@@ -18,7 +18,7 @@ import java.util.*;
 
 public class VisuController {
     private final int UPDATETIME = 50;
-    private int nbOfBalls = 2;
+    private int nbOfBalls = 1;
     Kort map;
     Path path;
     private long lastTime;
@@ -38,17 +38,19 @@ public class VisuController {
         if (started) return;
         started = true;
 
-        robotController = new RobotController();
-        robotController.start();
 
         //Grid
         Grid grid = new Grid(map.getWIDTH(), map.getHEIGHT());
         Point[] points = otherController.getField();
         Vector2D[] vA = pointToVector(points);
 
-        grid.setScale(vA[0], vA[1], vA[2], vA[3]);
+        grid.setScale(vA);
         grid.setColor(Colors.GRID);
         map.setGrid(grid);
+
+        //RobotController
+        robotController = new RobotController(grid);
+        robotController.start();
 
         //Skab objekterne
         createObjects(grid);
@@ -83,40 +85,25 @@ public class VisuController {
 
         //Fetch points
         List<Vector2D>  robotPos = new ArrayList<>();
-        List<Point> robotPoints = otherController.grabFrameRobotCirkel(); //TODO: change it
+        List<Point> robotPoints = otherController.getRobot();
         List<Vector2D> ballPos = new ArrayList<>();
-        List<Point> ballPoints = otherController.grabFrameCirkel(); //Todo: change it
-        int i = 0;
-        boolean robotOk = false, ballOk = false;
-        while (true){
-            if (ballPoints == null || ballPoints.size() < nbOfBalls){
-                ballPoints = otherController.grabFrameCirkel();
-            }
-            else ballOk = true;
-
-            if (robotPoints == null || robotPoints.size() < 3){
-                robotPoints = otherController.grabFrameRobotCirkel();
-            }
-            else robotOk = true;
-
-            if (robotOk && ballOk) break;
-
-            if (++i > 20){
-                return;
-            }
-        }
+        List<Point> ballPoints = otherController.getBalls();
 
         //Update balls
-        for (Point p : ballPoints){
-            ballPos.add(new Vector2D((float)p.x, (float)p.y));
+        if (ballPoints.size() >= nbOfBalls){
+            for (Point p : ballPoints){
+                ballPos.add(new Vector2D((float)p.x, (float)p.y));
+            }
+            map.setBalls(createBalls(ballPos.toArray(new Vector2D[0]), grid));
         }
-        map.setBalls(createBalls(ballPos.toArray(new Vector2D[0]), grid));
 
         //Update robot
-        for (Point p : robotPoints){
-            robotPos.add(new Vector2D((float)p.x, (float)p.y));
+        if (robotPoints.size() == 3) {
+            for (Point p : robotPoints) {
+                robotPos.add(new Vector2D((float) p.x, (float) p.y));
+            }
+            map.setRobot(updateRobot(robotPos.toArray(new Vector2D[0]), grid));
         }
-        map.setRobot(updateRobot(robotPos.toArray(new Vector2D[0]), grid));
 
         //Update cross
         Point[] cPoints = otherController.getCross();

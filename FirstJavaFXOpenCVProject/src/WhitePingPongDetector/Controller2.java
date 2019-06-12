@@ -28,6 +28,8 @@ public class Controller2 {
     @FXML
     private Button button;
     @FXML
+    private Button button2;
+    @FXML
     private ImageView originalFrame;
     //@FXML
     // private ImageView originalFrame2;
@@ -74,6 +76,18 @@ public class Controller2 {
     private Point[] field = new Point[4];
 
     private Point[] cross = new Point[12];
+
+    private ArrayList<Point> balls;
+
+    private ArrayList<Point> robotPoints;
+
+    public ArrayList<Point> getRobot(){
+        return robotPoints;
+    }
+
+    public ArrayList<Point> getBalls(){
+        return balls;
+    }
 
     public Point[] getField() {
         return field;
@@ -169,20 +183,14 @@ public class Controller2 {
             if (this.videoCapture.isOpened()) {
                 this.cameraActive = true;
 
-                update();
-                visuController.start();
-  /*              // Fang et frame hvert x'te ms (x frame/s)
-                Runnable frameGrabber = () -> {
-                    // Fang og behandl et enkelt frame
-                    Mat frame = grabFrame();
-                    Image imageToShow = Utils.mat2Image(frame);
-                    updateImageView(originalFrame, imageToShow);
-                };
+                // Fang et frame hvert x'te ms (x frame/s)
+                // Fang og behandl et enkelt frame
+                Runnable frameGrabber = this::update;
 
                 this.timer = Executors.newSingleThreadScheduledExecutor();
                 // Her sættes framerate (Runnable, initialDelay, framerate, tidsenhed )
                 this.timer.scheduleAtFixedRate(frameGrabber, 0, 1, TimeUnit.MILLISECONDS);
-*/
+
                 // Opdater knap indhold
                 this.button.setText("Stop Kamera");
             } else {
@@ -196,6 +204,11 @@ public class Controller2 {
             // Stop timeren
             this.stopAquisition();
         }
+    }
+
+    @FXML
+    protected void startTracking(){
+        visuController.start();
     }
 
     /**
@@ -214,8 +227,8 @@ public class Controller2 {
                 // Hvis frame ikke er tomt, behandl det
                 if (!frame.empty()) {
                     //Find punkter til bolde/bander/Robot/Kors
-                    ArrayList<Point> balls = grabFrameCirkel();
-                    ArrayList<Point> robotPoints = grabFrameRobotCirkel();
+                    balls = grabFrameCirkel();
+                    robotPoints = grabFrameRobotCirkel();
 
                     //grabFrameCirkel()
                     // openCV objekt, brug til HSV konvertiering
