@@ -123,7 +123,7 @@ public class Kort {
         context.clearRect(0,0,WIDTH,HEIGHT); //Clear canvas
 
         grid.draw(context);
-        robot.draw(context);
+        if (robot != null) robot.draw(context);
         for(Bold ball:balls)
             ball.draw(context);
 

@@ -25,46 +25,23 @@ public class RobotController {
     public void start(){
         //Starter forbindelse til roboten
         robotSocket = new RobotSocket();
-        try {
-            robotSocket.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
-        t = new Thread(() -> {
-            if (robot.getTarget() != null) {
-                //Sug de bolde
+        /*t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (robot != null && robot.getTarget() != null) {
+
+                }
                 try {
-                    robotSocket.suck();
-                } catch (IOException e) {
+                    System.out.println("Thread is waiting...");
+                    t.wait();
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                //Drejer mod target
-                float angle = robot.getAngleToTarget();
-                System.out.println("Angle to target: " + angle);
-                try {
-                    robotSocket.turn(angle);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                //Kører mod target
-                float dist = grid.translateLengthToMilimeters(robot.getDIstToTarget()) / 10;
-                System.out.println("Distance to target:  " + dist);
-                try {
-                    robotSocket.driveForward(dist);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                isTargeting = false;
-            }
-            try {
-                t.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
         });
 
-        t.start();
+        t.start();*/
     }
 
     public void setRobot(Robot robot){
@@ -76,7 +53,29 @@ public class RobotController {
             System.out.println("Robot is targeting target at pos: "+target);
             isTargeting = true;
             robot.setTarget(target);
-            t.notify();
+            //Sug de bolde
+            try {
+                robotSocket.suck();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            //Drejer mod target
+            float angle = robot.getAngleToTarget();
+            System.out.println("Angle to target: " + angle+ " robot angle: "+robot.getRotation());
+            try {
+                robotSocket.turn(angle);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            //Kører mod target
+            float dist = grid.translateLengthToMilimeters(robot.getDIstToTarget()) / 10;
+            System.out.println("Distance to target:  " + dist);
+            try {
+                robotSocket.driveForward(dist);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            isTargeting = false;
         }
     }
 

@@ -27,6 +27,7 @@ public class RobotSocket {
     }
 
     private void sendMessage(String msg) throws IOException {
+        start();
         outToServer.writeBytes(msg + "\n");
         System.out.println("from server : "+inFromServer.readLine().toString());
     }

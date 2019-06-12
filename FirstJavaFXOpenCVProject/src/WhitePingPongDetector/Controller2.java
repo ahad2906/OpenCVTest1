@@ -30,6 +30,8 @@ public class Controller2 {
     @FXML
     private Button button2;
     @FXML
+    private Button button3;
+    @FXML
     private ImageView originalFrame;
     //@FXML
     // private ImageView originalFrame2;
@@ -211,6 +213,11 @@ public class Controller2 {
         visuController.start();
     }
 
+    @FXML
+    protected void startRobot(){
+        visuController.startRobot();
+    }
+
     /**
      * Fang et frame fra the åbnede video stream (hvis der er nogen)
      * Det er her framet skal bearbejdes
@@ -377,13 +384,19 @@ public class Controller2 {
                         Imgproc.circle(frame, p, 1, new Scalar(0,100,100), 3, 8, 0);
                     }
                     //tegn robotpunter
-                    for (Point p : robotPoints) {
+                    Point p  = robotPoints.get(0);
                         int radius = 20;
-                        Imgproc.circle(frame, p, radius, new Scalar(0, 0, 225), 3, 8 ,0);
+                        Imgproc.circle(frame, p, radius, new Scalar(0, 255, 255), 3, 8 ,0);
                         String koord = p.toString();
                         Imgproc.putText(frame,koord, p, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
                         Imgproc.circle(frame, p, 1, new Scalar(0,100,100), 3, 8, 0);
-                    }
+                    Point p1  = robotPoints.get(1);
+                    int radius1 = 20;
+                    Imgproc.circle(frame, p1, radius1, new Scalar(0, 0, 225), 3, 8 ,0);
+                    String koord1 = p1.toString();
+                    Imgproc.putText(frame,koord1, p1, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
+                    Imgproc.circle(frame, p1, 1, new Scalar(0,100,100), 3, 8, 0);
+
 
 
                     // opdater billedet midt til højre i UI
@@ -547,7 +560,7 @@ public class Controller2 {
 
                     for(int i = 0; i < circles.cols(); i++) {
                         double[] c = circles.get(0, i);
-                        System.out.println(i + ": " + Math.round(c[0]) + ", " + Math.round(c[1]));
+                     //   System.out.println(i + ": " + Math.round(c[0]) + ", " + Math.round(c[1]));
                         Point center = new Point(Math.round(c[0]), Math.round(c[1]));
                         // Imgproc.circle(frame, center, 1, new Scalar(0,100,100), 3, 8, 0);
                         int radius = (int) Math.round(c[2]);
@@ -576,7 +589,21 @@ public class Controller2 {
         //return frame;
         return null;
     }
+
+
     public ArrayList<Point> grabFrameRobotCirkel() {
+
+        ArrayList<Point> points = new ArrayList<>();
+        // Finde hvid cirkel
+        points.add(grabFrameRobotPoint(new Scalar(0,0,0), new Scalar(0,0,255)));
+        // Finde sort cirkel
+        points.add(grabFrameRobotPoint(new Scalar(0, 0, 0 ), new Scalar(180, 255, 100)));
+        return points;
+
+    }
+
+
+    public Point grabFrameRobotPoint(Scalar scalarStart, Scalar scalarStop) {
         // init alt
         Mat frame = new Mat();
 
@@ -588,17 +615,27 @@ public class Controller2 {
                 // hvis frame ikke er tomt, behandl det
                 if (!frame.empty()) {
 
-                    Mat grayImage = new Mat();
-                    grayConverter(frame, grayImage);
-                    Imgproc.adaptiveThreshold(grayImage, grayImage, 125, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 11, 12);
 
 
                     // konverter framet framet til et HSV frame
                     //*Imgproc.cvtColor(frame, grayImage, Imgproc.COLOR_BGR2GRAY);
 
                     // reduce noise with a 3x3 kernel
+                    Mat hsv = new Mat();
+                    hsvConverter(frame, hsv);
+                    Mat grayImage = new Mat();
+                    Core.inRange(hsv, scalarStart, scalarStop, grayImage);
                     Mat detectedEdges = new Mat();
+
+
+                 //   grayConverter(hsv, grayImage);
+                    Imgproc.adaptiveThreshold(grayImage, grayImage, 125, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 11, 12);
+
+
                     Imgproc.medianBlur(grayImage, detectedEdges, 3);
+
+
+
 
                     //Imgproc.GaussianBlur(grayImage, detectedEdges, new Size(3,3), 2, 2);
                     Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_CROSS, new  Size(5, 5));
@@ -627,9 +664,9 @@ public class Controller2 {
                     //this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
 
                     Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT, 1, 10, 19, 18, 15, 20);
-                    ArrayList<Point> returnValue = new ArrayList<>();
-                    for(int i = 0; i < circles.cols(); i++) {
-                        double[] c = circles.get(0, i);
+                    Point returnValue = new Point();
+                    //for(int i = 0; i < circles.cols(); i++) {
+                        double[] c = circles.get(0, 0);
                         //System.out.println(i + ": " + Math.round(c[0]) + ", " + Math.round(c[1]));
                         Point center = new Point(Math.round(c[0]), Math.round(c[1]));
                        /* Imgproc.circle(frame, center, 1, new Scalar(0,100,100), 3, 8, 0);
@@ -637,10 +674,10 @@ public class Controller2 {
                         /*Imgproc.circle(frame, center, radius, new Scalar(0, 0, 225), 3, 8 ,0);
                         String koord = Math.round(c[0]) + ": " + Math.round(c[1]);
                         Imgproc.putText(frame, koord, center, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);*/
-                        returnValue.add(center);
-                    }
+                        returnValue = center;
+                    //}
 
-                    System.out.println(circles.cols());
+//                    System.out.println(circles.cols());
 
                     this.updateImageView(this.cannyImage2, Utils.mat2Image(detectedEdges));
                     //this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));
@@ -722,7 +759,7 @@ public class Controller2 {
                         Imgproc.putText(frame, koord, center, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);
                     }
 
-                    System.out.println(circles.cols());
+               //     System.out.println(circles.cols());
 
                     this.updateImageView(this.cannyImage2, Utils.mat2Image(detectedEdges));
                     //this.updateImageView(this.originalFrame2, Utils.mat2Image(frame));

@@ -61,11 +61,11 @@ public class Vector2D {
         int d;
         if (b.getY() < a.getY()){
             v = Vector2D.LEFT;
-            d = 180;
+            d = 0;
         }
         else {
             v = Vector2D.RIGHT;
-            d = 0;
+            d = 180;
         }
 
         float cos0 = Vector2D.DotProduct(v,direction) /
@@ -94,7 +94,8 @@ public class Vector2D {
      * @return
      */
     public static float Distance(Vector2D a, Vector2D b){
-        return CopyOf(a).subtract(b).getMagnitude();
+        return (float) Math.abs(Math.sqrt(Math.pow(a.x - b.x,2)+Math.pow(a.y - b.y,2)));
+        //return CopyOf(a).subtract(b).getMagnitude();
     }
 
     /**

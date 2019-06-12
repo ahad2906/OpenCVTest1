@@ -68,11 +68,6 @@ public class VisuController {
                     //TODO: fetch data;
                     updatePositions();
 
-                    if (map.getRobot() != null) {
-                        createPath();
-                        robotController.setRobotTarget(path.getNext());
-                    }
-
                     //Draw map
                     map.update();
                 }
@@ -98,7 +93,7 @@ public class VisuController {
         }
 
         //Update robot
-        if (robotPoints.size() == 3) {
+        if (robotPoints.size() == 2) {
             for (Point p : robotPoints) {
                 robotPos.add(new Vector2D((float) p.x, (float) p.y));
             }
@@ -209,38 +204,13 @@ public class VisuController {
         //Oversætter positionerne
         vA = grid.translatePositions(vA);
 
-        //Finder bag og for ende
-        float minDist = Float.MAX_VALUE;
-        Vector2D[] bagpunkter = new Vector2D[2];
-        for (int i = 0; i < vA.length - 1; i++){
-            float dist = Vector2D.Distance(vA[i],vA[i+1]);
-            if (minDist > dist){
-                minDist = dist;
-                bagpunkter[0] = vA[i];
-                bagpunkter[1] = vA[i+1];
-            }
-        }
-        System.out.println("Bagpunkter: " + bagpunkter[0].toString() + ", " + bagpunkter[1].toString());
-        Vector2D forPunkt = Vector2D.ZERO;
-        for (Vector2D v : vA){
-            if (v != bagpunkter[0] && v != bagpunkter[1]){
-                forPunkt = v;
-            }
-        }
-        System.out.println("Forpunkt: " + forPunkt.toString());
-        vA = new Vector2D[]{
-                new Vector2D(
-                        (bagpunkter[0].getX()+bagpunkter[1].getX())/2,
-                        (bagpunkter[0].getY()+bagpunkter[1].getY())/2),
-                forPunkt
-        };
-
         //Finder midten af roboten
         Vector2D pos = new Vector2D((vA[0].getX()+vA[1].getX())/2, (vA[0].getY()+vA[1].getY())/2);
         //Finder robotens størrelse
         float size = Vector2D.Distance(vA[0], vA[1]);
         //Finder robotens vinkel
         float angle = Vector2D.Angle(vA[0], vA[1]);
+
 
         Robot robot = map.getRobot();
 
@@ -261,7 +231,9 @@ public class VisuController {
             return robot;
         }
 
-        //Beregner ændringen siden sidste check
+        robot.setPos(pos);
+        robot.setRotation(angle);
+        /*//Beregner ændringen siden sidste check
         float pos_change = Vector2D.Distance(robot.getPos(), pos);
         //Hvis den er for stor eller for lille ændres den ikke
         if (pos_change > 2 && pos_change < 20){
@@ -273,7 +245,7 @@ public class VisuController {
             if (rot_change < 30 && rot_change > -30){
                 robot.setRotation(angle);
             }
-        }
+        }*/
 
         return robot;
     }
@@ -341,5 +313,13 @@ public class VisuController {
             vA[i] = new Vector2D((float)points[i].x, (float)points[i].y);
         }
         return vA;
+    }
+
+    public void startRobot() {
+        if (map.getRobot() != null) {
+            createPath();
+            robotController.setRobotTarget(path.getNext());
+        }
+
     }
 }

@@ -73,7 +73,8 @@ public class Robot extends SpaceObject implements IMovableObject, IDrawable, Upd
     }
 
     public float getAngleToTarget(){
-        return Vector2D.Angle(position, target);
+        float r = Vector2D.Angle(position, target);
+        return ((rotation > r)? rotation-r : r-rotation)-180;
     }
 
     public float getDIstToTarget(){
