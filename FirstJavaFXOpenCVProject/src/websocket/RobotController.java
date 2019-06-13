@@ -44,7 +44,7 @@ public class RobotController {
         this.robot = robot;
     }
 
-    public void setRobotTarget(final Vector2D target){
+    public synchronized void setRobotTarget(final Vector2D target){
         if (!isTargeting && robot != null){
             System.out.println("Robot is targeting target at pos: "+target);
             isTargeting = true;
