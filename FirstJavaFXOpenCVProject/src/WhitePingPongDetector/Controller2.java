@@ -594,10 +594,10 @@ public class Controller2 {
     public ArrayList<Point> grabFrameRobotCirkel() {
 
         ArrayList<Point> points = new ArrayList<>();
-        // Finde hvid cirkel
-        points.add(grabFrameRobotPoint(new Scalar(0,0,0), new Scalar(0,0,255)));
-        // Finde sort cirkel
-        points.add(grabFrameRobotPoint(new Scalar(0, 0, 0 ), new Scalar(180, 255, 100)));
+        // Finde blå cirkel
+        points.add(grabFrameRobotPoint(new Scalar(100,150,0), new Scalar(140,255,255)));
+        // Finde grøn cirkel
+        points.add(grabFrameRobotPoint(new Scalar(40, 70, 0 ), new Scalar(75, 255, 255)));
         return points;
 
     }

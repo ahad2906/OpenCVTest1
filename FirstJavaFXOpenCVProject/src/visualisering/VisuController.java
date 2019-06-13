@@ -219,8 +219,6 @@ public class VisuController {
             robot.setHeight(size/*1.5f*/);
 
             robotController.setRobot(robot);
-
-            return robot;
         }
 
         robot.setFrontAndBack(vA);

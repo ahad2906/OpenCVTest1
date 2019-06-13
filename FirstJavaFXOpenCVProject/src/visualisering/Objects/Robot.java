@@ -94,6 +94,7 @@ public class Robot extends SpaceObject implements IMovableObject, IDrawable, Upd
                 (r_Dir.getMagnitude() * t_Dir.getMagnitude());
 
         float degrees = (float)Math.toDegrees(Math.acos(cos0));
+        System.out.println("Calculated target degrees: "+degrees);
         return (degrees > 180)? degrees-360 : degrees;
     }
 
