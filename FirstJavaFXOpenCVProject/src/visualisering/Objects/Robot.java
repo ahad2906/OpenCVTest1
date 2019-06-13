@@ -17,6 +17,20 @@ public class Robot extends SpaceObject implements IMovableObject, IDrawable, Upd
     private Vector2D dest;
     private float speed;
     private Vector2D target;
+    private Vector2D front, back;
+
+    public void setFrontAndBack(Vector2D[] vA){
+        front = vA[0];
+        back = vA[1];
+
+        //Finder midten af roboten
+        Vector2D pos = new Vector2D((vA[0].getX()+vA[1].getX())/2, (vA[0].getY()+vA[1].getY())/2);
+        //Finder robotens vinkel
+        float angle = Vector2D.Angle(vA[0], vA[1]);
+
+        setRotation(angle);
+        setPos(pos);
+    }
 
     @Override
     public void moveTo(Vector2D dest) {
@@ -73,11 +87,17 @@ public class Robot extends SpaceObject implements IMovableObject, IDrawable, Upd
     }
 
     public float getAngleToTarget(){
-        float r = Vector2D.Angle(position, target);
-        return ((rotation > r)? rotation-r : r-rotation)-180;
+        Vector2D t_Dir = Vector2D.CopyOf(target).subtract(position);
+        Vector2D r_Dir = Vector2D.CopyOf(front).subtract(back);
+
+        float cos0 = Vector2D.DotProduct(r_Dir, t_Dir) /
+                (r_Dir.getMagnitude() * t_Dir.getMagnitude());
+
+        float degrees = (float)Math.toDegrees(Math.acos(cos0));
+        return (degrees > 180)? degrees-360 : degrees;
     }
 
-    public float getDIstToTarget(){
+    public float getDistToTarget(){
         return Vector2D.Distance(position, target);
     }
 

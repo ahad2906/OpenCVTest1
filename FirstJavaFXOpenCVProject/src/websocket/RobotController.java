@@ -1,15 +1,10 @@
 package websocket;
 
 import visualisering.Objects.Robot;
-import visualisering.Objects.SpaceObject;
 import visualisering.Space.Grid;
 import visualisering.Space.Vector2D;
 
 import java.io.IOException;
-import java.sql.SQLOutput;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class RobotController {
     private Robot robot;
@@ -20,13 +15,14 @@ public class RobotController {
 
     public RobotController(Grid grid){
         this.grid = grid;
+        this.robotSocket = new RobotSocket();
     }
 
-    public void start(){
+    /*public void start(){
         //Starter forbindelse til roboten
         robotSocket = new RobotSocket();
 
-        /*t = new Thread(new Runnable() {
+        t = new Thread(new Runnable() {
             @Override
             public void run() {
                 if (robot != null && robot.getTarget() != null) {
@@ -41,8 +37,8 @@ public class RobotController {
             }
         });
 
-        t.start();*/
-    }
+        t.start();
+    }*/
 
     public void setRobot(Robot robot){
         this.robot = robot;
@@ -68,7 +64,7 @@ public class RobotController {
                 e.printStackTrace();
             }
             //Kører mod target
-            float dist = grid.translateLengthToMilimeters(robot.getDIstToTarget()) / 10;
+            float dist = grid.translateLengthToMilimeters(robot.getDistToTarget()) / 10;
             System.out.println("Distance to target:  " + dist);
             try {
                 robotSocket.driveForward(dist);

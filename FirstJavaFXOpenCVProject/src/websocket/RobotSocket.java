@@ -21,7 +21,7 @@ public class RobotSocket {
     private boolean sucking;
 
     public void start() throws IOException {
-        clientSocket = new Socket("172.20.10.9", 6789);
+        clientSocket = new Socket("10.42.0.176", 6789);
         outToServer = new DataOutputStream(clientSocket.getOutputStream());
         inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
     }

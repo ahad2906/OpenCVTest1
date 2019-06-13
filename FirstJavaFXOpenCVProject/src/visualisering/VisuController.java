@@ -50,7 +50,7 @@ public class VisuController {
 
         //RobotController
         robotController = new RobotController(grid);
-        robotController.start();
+        //robotController.start();
 
         //Skab objekterne
         createObjects(grid);
@@ -93,7 +93,7 @@ public class VisuController {
         }
 
         //Update robot
-        if (robotPoints.size() == 2) {
+        if (robotPoints.size() == 2 && !robotPoints.contains(null)) {
             for (Point p : robotPoints) {
                 robotPos.add(new Vector2D((float) p.x, (float) p.y));
             }
@@ -204,13 +204,6 @@ public class VisuController {
         //Oversætter positionerne
         vA = grid.translatePositions(vA);
 
-        //Finder midten af roboten
-        Vector2D pos = new Vector2D((vA[0].getX()+vA[1].getX())/2, (vA[0].getY()+vA[1].getY())/2);
-        //Finder robotens størrelse
-        float size = Vector2D.Distance(vA[0], vA[1]);
-        //Finder robotens vinkel
-        float angle = Vector2D.Angle(vA[0], vA[1]);
-
 
         Robot robot = map.getRobot();
 
@@ -220,19 +213,17 @@ public class VisuController {
             //Farven
             robot.setColor(Colors.ROBOT);
 
+            //Finder robotens størrelse
+            float size = Vector2D.Distance(vA[0], vA[1]);
             robot.setWidth(size/*1.5f*/);
             robot.setHeight(size/*1.5f*/);
-
-            robot.setPos(pos);
-            robot.setRotation(angle);
 
             robotController.setRobot(robot);
 
             return robot;
         }
 
-        robot.setPos(pos);
-        robot.setRotation(angle);
+        robot.setFrontAndBack(vA);
         /*//Beregner ændringen siden sidste check
         float pos_change = Vector2D.Distance(robot.getPos(), pos);
         //Hvis den er for stor eller for lille ændres den ikke

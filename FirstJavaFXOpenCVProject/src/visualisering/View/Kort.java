@@ -127,7 +127,7 @@ public class Kort {
         for(Bold ball:balls)
             ball.draw(context);
 
-        cross.draw(context);
+        if (cross != null) cross.draw(context);
 
         for(Mål goal:goals)
             goal.draw(context);
