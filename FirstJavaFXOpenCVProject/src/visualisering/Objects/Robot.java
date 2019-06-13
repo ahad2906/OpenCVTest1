@@ -7,6 +7,8 @@ import visualisering.Space.IMovableObject;
 import visualisering.Space.Vector2D;
 import visualisering.View.IDrawable;
 
+import javax.swing.text.Style;
+
 /**
  * Represents the robot
  * @author DFallingHammer
@@ -89,13 +91,14 @@ public class Robot extends SpaceObject implements IMovableObject, IDrawable, Upd
     public float getAngleToTarget(){
         Vector2D t_Dir = Vector2D.CopyOf(target).subtract(position);
         Vector2D r_Dir = Vector2D.CopyOf(front).subtract(back);
+        System.out.println("Target vector: "+t_Dir+" cur vector: "+r_Dir);
 
         float cos0 = Vector2D.DotProduct(r_Dir, t_Dir) /
                 (r_Dir.getMagnitude() * t_Dir.getMagnitude());
 
         float degrees = (float)Math.toDegrees(Math.acos(cos0));
         System.out.println("Calculated target degrees: "+degrees);
-        return (degrees > 180)? degrees-360 : degrees;
+        return (Vector2D.CrossProduct(r_Dir, t_Dir) < 0)? degrees : -degrees ;
     }
 
     public float getDistToTarget(){

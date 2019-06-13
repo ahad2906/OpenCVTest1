@@ -156,6 +156,10 @@ public class Vector2D {
         return a.getX()*b.getX()+a.getY()*b.getY();
     }
 
+    public static float CrossProduct(Vector2D a, Vector2D b){
+        return a.getX()*b.getY() - b.getX()*a.getY();
+    }
+
 
     //Public methods:
     /**

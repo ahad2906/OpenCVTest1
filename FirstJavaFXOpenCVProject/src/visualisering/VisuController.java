@@ -85,7 +85,7 @@ public class VisuController {
         List<Point> ballPoints = otherController.getBalls();
 
         //Update balls
-        if (ballPoints.size() >= nbOfBalls){
+        if (ballPoints != null && ballPoints.size() >= nbOfBalls){
             for (Point p : ballPoints){
                 ballPos.add(new Vector2D((float)p.x, (float)p.y));
             }
@@ -93,7 +93,7 @@ public class VisuController {
         }
 
         //Update robot
-        if (robotPoints.size() == 2 && !robotPoints.contains(null)) {
+        if (robotPoints != null && robotPoints.size() == 2 && !robotPoints.contains(null)) {
             for (Point p : robotPoints) {
                 robotPos.add(new Vector2D((float) p.x, (float) p.y));
             }
