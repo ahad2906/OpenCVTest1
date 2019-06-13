@@ -1,10 +1,14 @@
 package websocket;
 
+import com.sun.istack.internal.NotNull;
 import visualisering.Objects.Robot;
 import visualisering.Space.Grid;
 import visualisering.Space.Vector2D;
 
 import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class RobotController {
     private Robot robot;
@@ -12,43 +16,26 @@ public class RobotController {
     private RobotSocket robotSocket;
     private Thread t;
     private boolean isTargeting, motorsStarted;
+    private ScheduledExecutorService schedule;
+    private final float MIN_DIST = 12f, OFFSET = 2f;
 
     public RobotController(Grid grid){
         this.grid = grid;
-        this.robotSocket = new RobotSocket();
     }
 
-    /*public void start(){
+    public void start(){
         //Starter forbindelse til roboten
         robotSocket = new RobotSocket();
 
-        t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                if (robot != null && robot.getTarget() != null) {
+        Runnable runnable = this::update;
 
-                }
-                try {
-                    System.out.println("Thread is waiting...");
-                    t.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        t.start();
-    }*/
-
-    public void setRobot(Robot robot){
-        this.robot = robot;
+        this.schedule = Executors.newSingleThreadScheduledExecutor();
+        // Her sættes framerate (Runnable, initialDelay, framerate, tidsenhed )
+        this.schedule.scheduleAtFixedRate(runnable, 0, 100, TimeUnit.MILLISECONDS);
     }
 
-    public synchronized void setRobotTarget(final Vector2D target){
-        if (!isTargeting && robot != null){
-            System.out.println("Robot is targeting target at pos: "+target);
-            isTargeting = true;
-            robot.setTarget(target);
+    public void update(){
+        if (isTargeting) {
             //Sug de bolde
             try {
                 robotSocket.suck();
@@ -64,10 +51,17 @@ public class RobotController {
                 e.printStackTrace();
             }
             //Kører mod target
-            float dist = grid.translateLengthToMilimeters(robot.getDistToTarget()) / 10;
+            float dist = (grid.translateLengthToMilimeters(robot.getDistToTarget()) -
+                    grid.translateLengthToMilimeters(robot.getHeight())/2) / 10 + OFFSET;
             System.out.println("Distance to target:  " + dist);
             try {
-                robotSocket.driveForward(dist);
+                if (dist > MIN_DIST){
+                    robotSocket.driveForward(dist-MIN_DIST);
+                    robotSocket.driveSlowForward(MIN_DIST);
+                }
+                else {
+                    robotSocket.driveSlowForward(dist);
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -75,8 +69,26 @@ public class RobotController {
         }
     }
 
+    public void setRobot(Robot robot){
+        this.robot = robot;
+    }
+
+    public void setRobotTarget(@NotNull final Vector2D target){
+        if (!isTargeting && robot != null){
+            System.out.println("Robot is targeting target at pos: "+target);
+            robot.setTarget(target);
+            isTargeting = true;
+        }
+    }
+
 
     public void close(){
+    schedule.shutdown();
+        try {
+            schedule.awaitTermination(33, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         try {
             robotSocket.close();
         } catch (IOException e) {

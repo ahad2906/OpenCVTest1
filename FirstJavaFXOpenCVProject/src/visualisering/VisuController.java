@@ -50,7 +50,7 @@ public class VisuController {
 
         //RobotController
         robotController = new RobotController(grid);
-        //robotController.start();
+        robotController.start();
 
         //Skab objekterne
         createObjects(grid);
@@ -64,9 +64,16 @@ public class VisuController {
                 if (cur - lastTime > UPDATETIME) {
                     lastTime = cur;
 
-                    otherController.update();
-                    //TODO: fetch data;
+                    //Updating positions
                     updatePositions();
+
+                    //PathFinding
+                    createPath();
+                    Vector2D target = path.getNext();
+                    if (target != null) {
+                        robotController.setRobotTarget(target);
+                    }
+
 
                     //Draw map
                     map.update();
@@ -101,9 +108,9 @@ public class VisuController {
         }
 
         //Update cross
-        Point[] cPoints = otherController.getCross();
-        if (cPoints != null && cPoints.length >=12){
-            map.setCross(updateCross(pointToVector(cPoints), grid));
+        List<Point> cPoints = Arrays.asList(otherController.getCross());
+        if (!cPoints.contains(null) && cPoints.size() ==12){
+            map.setCross(updateCross(pointToVector(cPoints.toArray(new Point[0])), grid));
         }
     }
 
@@ -308,6 +315,7 @@ public class VisuController {
         if (map.getRobot() != null) {
             createPath();
             robotController.setRobotTarget(path.getNext());
+            robotController.update();
         }
 
     }
