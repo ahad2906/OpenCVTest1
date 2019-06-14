@@ -311,12 +311,8 @@ public class VisuController {
         return vA;
     }
 
-    public void startRobot() {
-        if (map.getRobot() != null) {
-            createPath();
-            robotController.setRobotTarget(path.getNext());
-            robotController.update();
-        }
+    public void stopRobot() {
+        robotController.close();
 
     }
 }

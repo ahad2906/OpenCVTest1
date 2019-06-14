@@ -214,8 +214,8 @@ public class Controller2 {
     }
 
     @FXML
-    protected void startRobot(){
-        visuController.startRobot();
+    protected void stopRobot(){
+        visuController.stopRobot();
     }
 
     /**

@@ -60,7 +60,14 @@ public class RobotSocket {
         sendMessage(BLOW);
     }
 
+    public void stop() throws IOException {
+        start();
+        outToServer.writeBytes("exit\n");
+    }
+
+
     public void close() throws IOException {
+        stop();
         outToServer.close();
         clientSocket.close();
         inFromServer.close();
