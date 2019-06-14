@@ -74,7 +74,7 @@
             </padding>
             <Button fx:id="button" alignment="CENTER" onAction="#startCamera" text="Start Camera" />
             <Button fx:id="button2" alignment="CENTER" onAction="#startTracking" text="Start Tracking" />
-            <Button fx:id="button3" alignment="CENTER" onAction="#stopRobot" text="Start Robot" />
+            <Button fx:id="button3" alignment="CENTER" onAction="#stopRobot" text="Stop Robot" />
             <Separator />
             <Label fx:id="hsvValues"/>
             <Separator />

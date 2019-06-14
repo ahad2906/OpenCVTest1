@@ -17,7 +17,7 @@ public class RobotController {
     private Thread t;
     private boolean isTargeting, motorsStarted;
     private ScheduledExecutorService schedule;
-    private final float MIN_DIST = 8f, OFFSET = 2f;
+    private final float MIN_DIST = 5f, OFFSET = 4f;
 
     public RobotController(Grid grid){
         this.grid = grid;
@@ -42,30 +42,50 @@ public class RobotController {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            //Drejer mod target
-            float angle = robot.getAngleToTarget();
-            System.out.println("Angle to target: " + angle+ " robot angle: "+robot.getRotation());
-            try {
-                robotSocket.turn(angle);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+
+            //Drej
+            turnTowardstarget();
+
             //Kører mod target
             float dist = (grid.translateLengthToMilimeters(robot.getDistToTarget()) -
                     grid.translateLengthToMilimeters(robot.getHeight())/2) / 10 - OFFSET;
             System.out.println("Distance to target:  " + dist);
             try {
+                //Hvis afstanden er længere end MIN_DIST så køres der hurtigt op til
                 if (dist > MIN_DIST){
+                    //Fuld smader mod bolden
                     robotSocket.driveForward(dist-MIN_DIST);
-                    robotSocket.driveSlowForward(MIN_DIST);
+
+                    //Retter lige op igen
+                    turnTowardstarget();
+
+                    //henter afstanden igen
+                    dist = (grid.translateLengthToMilimeters(robot.getDistToTarget()) -
+                            grid.translateLengthToMilimeters(robot.getHeight())/2) / 10 + OFFSET;
                 }
-                else {
-                    robotSocket.driveSlowForward(dist);
-                }
+
+                //TODO: check længden fra banderet så man ikke kommer til at køre in i det
+                //Kører langsomt imod bolden
+                robotSocket.driveSlowForward(dist);
+
+                //Kører tilbage hvis roboten er nær bander
+                robotSocket.driveBackward(MIN_DIST);
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
             isTargeting = false;
+        }
+    }
+
+    private void turnTowardstarget(){
+        //Drejer mod target
+        float angle = robot.getAngleToTarget();
+        System.out.println("Angle to target: " + angle+ " robot angle: "+robot.getRotation());
+        try {
+            robotSocket.turn(angle);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

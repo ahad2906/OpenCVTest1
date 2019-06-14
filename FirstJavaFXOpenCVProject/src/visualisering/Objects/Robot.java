@@ -89,8 +89,13 @@ public class Robot extends SpaceObject implements IMovableObject, IDrawable, Upd
     }
 
     public float getAngleToTarget(){
-        Vector2D t_Dir = Vector2D.CopyOf(target).subtract(position);
-        Vector2D r_Dir = Vector2D.CopyOf(front).subtract(back);
+        final Vector2D front = Vector2D.CopyOf(this.front),
+                back = Vector2D.CopyOf(this.back),
+                position = Vector2D.CopyOf(this.position),
+                target = Vector2D.CopyOf(this.target);
+
+        Vector2D t_Dir = target.subtract(position);
+        Vector2D r_Dir = front.subtract(back);
 
         float cos0 = Vector2D.DotProduct(r_Dir, t_Dir) /
                 (r_Dir.getMagnitude() * t_Dir.getMagnitude());
@@ -101,6 +106,7 @@ public class Robot extends SpaceObject implements IMovableObject, IDrawable, Upd
     }
 
     public float getDistToTarget(){
+        final Vector2D position = Vector2D.CopyOf(this.position);
         return Vector2D.Distance(position, target);
     }
 

@@ -11,7 +11,7 @@ import visualisering.View.IDrawable;
  * @version 1.0.4
  */
 public class Grid implements IDrawable {
-    final float WIDTH, HEIGHT;
+    public final float WIDTH, HEIGHT;
     public final float CELLS_HOR = 41.75f, CELLS_VER = 30.5f, GOAL_LEFT = 2.25f, GOAL_RIGHT = 4, UNIT_MM = 40;
     public final Vector2D CELL_SPACING;
     Vector2D scale, offset, spacing;

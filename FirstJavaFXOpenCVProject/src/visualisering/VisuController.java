@@ -25,6 +25,7 @@ public class VisuController {
     private Controller2 otherController;
     private RobotController robotController;
     private boolean started = false;
+    private AnimationTimer timer;
 
     public VisuController(Controller2 other){
         otherController = other;
@@ -37,7 +38,6 @@ public class VisuController {
     public void start(){
         if (started) return;
         started = true;
-
 
         //Grid
         Grid grid = new Grid(map.getWIDTH(), map.getHEIGHT());
@@ -56,7 +56,7 @@ public class VisuController {
         createObjects(grid);
         //createPath();
 
-        new AnimationTimer() {
+        timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 //Runs every UPDATETIME
@@ -79,7 +79,9 @@ public class VisuController {
                     map.update();
                 }
             }
-        }.start();
+        };
+
+        timer.start();
     }
 
     private void updatePositions(){
@@ -94,7 +96,12 @@ public class VisuController {
         //Update balls
         if (ballPoints != null && ballPoints.size() >= nbOfBalls){
             for (Point p : ballPoints){
-                ballPos.add(new Vector2D((float)p.x, (float)p.y));
+                //Oversætter og skalerer punktet til en Vector2D
+                Vector2D v = grid.translatePos(new Vector2D((float)p.x, (float)p.y));
+                //Hvis bolden er indenfor banen tilføjes denne til listen
+                if (v.getY() < grid.HEIGHT && v.getY() > 0 && v.getX() < grid.WIDTH && v.getX() > 0){
+                    ballPos.add(v);
+                }
             }
             map.setBalls(createBalls(ballPos.toArray(new Vector2D[0]), grid));
         }
@@ -146,7 +153,7 @@ public class VisuController {
     }
 
     private void createObjects(Grid grid){
-        //Nodes
+        /*//Nodes
         Node[][] nodes = new Node[(int)grid.CELLS_HOR][(int)grid.CELLS_VER];
         for (int i = 0; i < nodes.length; i++){
             for (int j = 0; j < nodes[i].length; j++){
@@ -160,16 +167,7 @@ public class VisuController {
                 }
             }
         }
-        map.setNodes(nodes);
-
-        //The Robot:
-        //map.setRobot(updateRobot(TestData.robotPos, grid));
-
-        //Obstacles
-        /*Kryds cross = new Kryds();
-        cross.setColor(Colors.OBSTACLE);
-        cross.setCorners(grid.translatePositions(TestData.cross));
-        map.setCross(cross);*/
+        map.setNodes(nodes);*/
 
         //Goals
         Set<Mål> goals = new HashSet<>();
@@ -200,9 +198,7 @@ public class VisuController {
             balls[i].setWidth(grid.CELL_SPACING.getX());
             balls[i].setHeight(grid.CELL_SPACING.getY());
             balls[i].setColor(Colors.BALL);
-            balls[i].setPos(
-                    grid.translatePos(vA[i])
-            );
+            balls[i].setPos(vA[i]);
         }
         return new HashSet<>(Arrays.asList(balls));
     }
@@ -210,7 +206,6 @@ public class VisuController {
     private Robot updateRobot(Vector2D[] vA, Grid grid){
         //Oversætter positionerne
         vA = grid.translatePositions(vA);
-
 
         Robot robot = map.getRobot();
 
@@ -222,26 +217,13 @@ public class VisuController {
 
             //Finder robotens størrelse
             float size = Vector2D.Distance(vA[0], vA[1]);
-            robot.setWidth(size*.5f);
+            robot.setWidth(size);
             robot.setHeight(size);
 
             robotController.setRobot(robot);
         }
 
         robot.setFrontAndBack(vA);
-        /*//Beregner ændringen siden sidste check
-        float pos_change = Vector2D.Distance(robot.getPos(), pos);
-        //Hvis den er for stor eller for lille ændres den ikke
-        if (pos_change > 2 && pos_change < 20){
-            robot.setPos(pos);
-
-            //Beregner ændringen i vinkeln siden sidst
-            float rot_change = robot.getRotation()-angle;
-            //Hvis den møder kriterierne ændres dennne
-            if (rot_change < 30 && rot_change > -30){
-                robot.setRotation(angle);
-            }
-        }*/
 
         return robot;
     }
@@ -249,42 +231,15 @@ public class VisuController {
     private Kryds updateCross(Vector2D[] vA, Grid grid){
         vA = grid.translatePositions(vA);
 
-        Vector2D[] hor = {
-                Vector2D.Middle(vA[2],vA[3]),
-                Vector2D.Middle(vA[8],vA[9])
-        };
-
-        Vector2D[] ver = {
-                Vector2D.Middle(vA[5],vA[6]),
-                Vector2D.Middle(vA[0],vA[11])
-        };
-
         Kryds cross = map.getCross();
-
-        Vector2D position = Vector2D.Middle(hor[0], hor[1]);
-
-        float rotation = Vector2D.Angle(hor[0], hor[1]);
 
         if (cross == null){
             cross = new Kryds();
             cross.setColor(Colors.OBSTACLE);
-
-            /*float width = Vector2D.Distance(hor[0], hor[1]);
-            float height = Vector2D.Distance(ver[0], ver[1]);
-            cross.setWidth(width);
-            cross.setHeight(height);
-            cross.setPos(position);
-            cross.setRotation(rotation);
-
-            return cross;*/
         }
 
-        float width = Vector2D.Distance(hor[0], hor[1]);
-        float height = Vector2D.Distance(ver[0], ver[1]);
-        cross.setWidth(width);
-        cross.setHeight(height);
-        cross.setPos(position);
-        cross.setRotation(rotation);
+        cross.setPoints(vA);
+
         /*
         //Beregner ændringen siden sidste check
         float pos_change = Vector2D.Distance(cross.getPos(), position);
@@ -314,5 +269,16 @@ public class VisuController {
     public void stopRobot() {
         robotController.close();
 
+    }
+
+    //TODO: næste gang, tænd sluk visu samt robot
+    public void startRobot(){
+        robotController.start();
+    }
+
+    public void close(){
+        timer.stop();
+        started = false;
+        stopRobot();
     }
 }
