@@ -109,6 +109,8 @@ public class Controller2 {
 
     private VisuController visuController;
 
+    Point centerpoint;
+
     public void addVisuController(VisuController visuController) {
         this.visuController = visuController;
     }
@@ -327,7 +329,19 @@ public class Controller2 {
 
                         if (approxCurve_temp.toArray().length == 12) {
                             Point[] aa = approxCurve_temp.toArray(); //TODO her er Points til plus
-                            cross = aa;
+                            Point[] projectedPointsCross = new Point[12];
+                            //TODO Herunder er korset projekteret
+                            double camHeight = 164;
+                            double objectHeight = 3.5;
+                            centerpoint = new Point(frame.width()/2, frame.height()/2);
+                            //Sidste element er hjørnerne
+
+                            for (int k = 0; k<aa.length; k++){
+                                Point p = aa[k];
+                                projectedPointsCross[k] = projectPoint(camHeight,objectHeight,centerpoint,p);
+                                //System.out.println(projectedPointsCross[k].toString() + " Projected");
+                            }
+                            cross = projectedPointsCross;
                             int count = 1;
                             for(Point a : aa){
                                 if(((a.x>xstart.getValue() && a.x<xstop.getValue())&&(a.y>ystart.getValue() && a.y<ystop.getValue()))) {
@@ -336,6 +350,7 @@ public class Controller2 {
                                   //  System.out.println(a.x + ", " + a.y + " Dette er point!");
                                     Imgproc.putText(frame, countString, a, Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
                                     Imgproc.circle(frame, a, 1, new Scalar(0,100,100),3, 8, 0);
+                                    //System.out.println(a.toString() + " Almindelig");
 
                                 }
                             }
@@ -352,10 +367,25 @@ public class Controller2 {
                                 // Imgproc.rectangle(frame, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(170, 0, 150, 150), 8);
 
                                 Point[] as = approxCurve_temp.toArray();
-                                field = as; //Giver field fieldet sine koordinater
+
+                                //TODO Projekterede punkter skal testes
+                                Point[] projectedPointsField = new Point[4];
+                                //TODO varier variable alt efter opstilling
+                                double camHeight = 164;
+                                double objectHeight = 7;
+                                centerpoint = new Point(frame.width()/2, frame.height()/2);
+                                //Sidste element er hjørnerne
+
+                                for (int k = 0; k<as.length; k++){
+                                    Point p = as[k];
+                                    projectedPointsField[k] = projectPoint(camHeight,objectHeight,centerpoint,p);
+                                    // TODO System.out.println(projectedPointsField[k].toString() + " Projected");
+                                }
+
+                                field = projectedPointsField; //Giver field fieldet sine koordinater
                                 for(Point aaa : as) {
                                     String countString = aaa.toString();
-
+                                    // TODO System.out.println(countString + " Almindelig");
                                     Imgproc.putText(frame, countString, aaa, Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
                                     Imgproc.circle(frame, aaa, 5, new Scalar(0, 225, 100), 3, 8, 0);
 
@@ -410,6 +440,34 @@ public class Controller2 {
             }
         }
         return frame;
+    }
+
+    /**
+     *
+     * @param camHeight = kameraets højde i cm fra jorden
+     * @param objectHeight = objektets højde i cm fra jorden
+     * @param centerPoint = centrum af kameraet  ((frame.width/2), (frame.heigth/2))
+     * @param projectPoint = punktet til objektet på framet, som skal projekteres
+     * @return
+     */
+    private Point projectPoint(double camHeight, double objectHeight, Point centerPoint, Point projectPoint) {
+
+        //camHeight og objectHeight er angivet i pxel, så de konverteres
+        camHeight *= 2.8; // cm til pixel - udregnet ved evt.: beregne pixel afstand på bande længde
+        objectHeight *= 2.8;
+
+        double grundlinje = Math.sqrt(Math.pow(centerPoint.x-projectPoint.x, 2)+Math.pow(centerPoint.y-projectPoint.y, 2));
+        double vinkelProjectPoint = Math.toDegrees(Math.asin(camHeight/(Math.sqrt(Math.pow(camHeight,2)+Math.pow(grundlinje, 2)))));
+
+        double robotTopVinkel = 90-vinkelProjectPoint;
+        double projectLength = (objectHeight*robotTopVinkel)/vinkelProjectPoint;
+        double grundLinje2 = grundlinje-projectLength;
+        double strengthFactor = grundLinje2/grundlinje;
+        double xChange = centerPoint.x-projectPoint.x;
+        double yChange = centerPoint.y-projectPoint.y;
+        Point newPoint = new Point(centerPoint.x-xChange*strengthFactor, centerPoint.y-yChange*strengthFactor);
+
+        return newPoint;
     }
 
     private ArrayList<Point> grabFrameField(List<MatOfPoint> contours) {
@@ -558,18 +616,23 @@ public class Controller2 {
                     Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT, 1, 10, 19, 18, 0, 10);
                     ArrayList<Point> returnValue = new ArrayList<>();
 
+                    double camHeight = 164;
+                    double objectHeight = 3.9;//3.7-4 cm
+                    centerpoint = new Point(frame.width()/2, frame.height()/2);
+
                     for(int i = 0; i < circles.cols(); i++) {
                         double[] c = circles.get(0, i);
                      //   System.out.println(i + ": " + Math.round(c[0]) + ", " + Math.round(c[1]));
                         Point center = new Point(Math.round(c[0]), Math.round(c[1]));
                         // Imgproc.circle(frame, center, 1, new Scalar(0,100,100), 3, 8, 0);
-                        int radius = (int) Math.round(c[2]);
 
                         /*Imgproc.circle(frame, center, radius, new Scalar(225, 0, 225), 3, 8 ,0);
                         String koord = Math.round(c[0]) + ": " + Math.round(c[1]);
                         Imgproc.putText(frame, koord, center, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);*/
-                        returnValue.add(center);
-
+                        //System.out.println(center.toString() + " almindelig");
+                        Point temp = projectPoint(camHeight,objectHeight, centerpoint, center);
+                        returnValue.add(temp);
+                        //System.out.println(temp.toString() + " projected");
                     }
 
                    // System.out.println(circles.cols());
@@ -594,10 +657,25 @@ public class Controller2 {
     public ArrayList<Point> grabFrameRobotCirkel() {
 
         ArrayList<Point> points = new ArrayList<>();
-        // Finde blå cirkel
-        points.add(grabFrameRobotPoint(new Scalar(100,150,0), new Scalar(140,255,255)));
-        // Finde grøn cirkel
-        points.add(grabFrameRobotPoint(new Scalar(40, 70, 0 ), new Scalar(75, 255, 255)));
+
+        double camHeight = 164;
+        double objectHeightGreen = 17.5;
+        double objectHeightBlue = 16.8;
+        Point blue = grabFrameRobotPoint(new Scalar(100,150,0), new Scalar(140,255,255));
+        Point blueProjected = projectPoint(camHeight,objectHeightBlue,centerpoint, blue);
+        Point green = grabFrameRobotPoint(new Scalar(40, 70, 0 ), new Scalar(75, 255, 255));
+        Point greenProjected = projectPoint(camHeight,objectHeightGreen,centerpoint, green);
+
+        /*System.out.println(blue.toString() + " almindelig blå");
+        System.out.println(blueProjected.toString() + " projected blå");
+        System.out.println(green.toString() + " almindelig grøn");
+        System.out.println(greenProjected.toString() + " projected grøn");*/
+
+
+        points.add(blueProjected);
+        points.add(greenProjected);
+
+
         return points;
 
     }
