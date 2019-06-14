@@ -17,7 +17,7 @@ public class RobotController {
     private Thread t;
     private boolean isTargeting, motorsStarted;
     private ScheduledExecutorService schedule;
-    private final float MIN_DIST = 12f, OFFSET = 2f;
+    private final float MIN_DIST = 8f, OFFSET = 2f;
 
     public RobotController(Grid grid){
         this.grid = grid;
@@ -52,7 +52,7 @@ public class RobotController {
             }
             //Kører mod target
             float dist = (grid.translateLengthToMilimeters(robot.getDistToTarget()) -
-                    grid.translateLengthToMilimeters(robot.getHeight())/2) / 10 + OFFSET;
+                    grid.translateLengthToMilimeters(robot.getHeight())/2) / 10 - OFFSET;
             System.out.println("Distance to target:  " + dist);
             try {
                 if (dist > MIN_DIST){

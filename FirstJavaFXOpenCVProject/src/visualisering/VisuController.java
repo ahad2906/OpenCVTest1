@@ -222,8 +222,8 @@ public class VisuController {
 
             //Finder robotens størrelse
             float size = Vector2D.Distance(vA[0], vA[1]);
-            robot.setWidth(size/*1.5f*/);
-            robot.setHeight(size/*1.5f*/);
+            robot.setWidth(size*.5f);
+            robot.setHeight(size);
 
             robotController.setRobot(robot);
         }
