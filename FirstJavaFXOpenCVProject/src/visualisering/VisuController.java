@@ -2,18 +2,19 @@ package visualisering;
 
 import WhitePingPongDetector.Controller2;
 import javafx.animation.AnimationTimer;
+import javafx.scene.canvas.Canvas;
 import org.opencv.core.Point;
-import visualisering.Objects.*;
+import visualisering.Objects.Bold;
+import visualisering.Objects.Kryds;
+import visualisering.Objects.Mål;
+import visualisering.Objects.Robot;
 import visualisering.Space.Grid;
-import visualisering.Space.Node;
 import visualisering.Space.Path;
 import visualisering.Space.Vector2D;
 import visualisering.View.Colors;
 import visualisering.View.Kort;
 import websocket.RobotController;
-import websocket.RobotSocket;
 
-import java.io.IOException;
 import java.util.*;
 
 public class VisuController {
@@ -31,8 +32,9 @@ public class VisuController {
         otherController = other;
     }
 
-    public void createMap(Kort map){
-        this.map = map;
+    public Canvas createView(float width){
+        this.map = new Kort(width);
+        return map.getCanvas();
     }
 
     public void start(){
@@ -174,14 +176,14 @@ public class VisuController {
         Mål goal = new Mål();
         goal.setPos(grid.getLeftCenterPos());
         goal.setWidth(5);
-        goal.setHeight(grid.GOAL_LEFT*grid.CELL_SPACING.getY());
+        goal.setHeight(grid.translateLengthToScale(grid.GOAL_LEFT));
         goal.setColor(Colors.GOAL);
         goals.add(goal);
 
         goal = new Mål();
         goal.setPos(grid.getRightCenterPos());
         goal.setWidth(5);
-        goal.setHeight(grid.GOAL_RIGHT*grid.CELL_SPACING.getY());
+        goal.setHeight(grid.translateLengthToScale(grid.GOAL_RIGHT));
         goal.setColor(Colors.GOAL);
         goals.add(goal);
         map.setGoals(goals);
@@ -195,8 +197,9 @@ public class VisuController {
         Bold[] balls = new Bold[vA.length];
         for (int i = 0; i < vA.length; i++){
             balls[i] = new Bold();
-            balls[i].setWidth(grid.CELL_SPACING.getX());
-            balls[i].setHeight(grid.CELL_SPACING.getY());
+            float diameter = grid.translateLengthToScale(40);
+            balls[i].setWidth(diameter);
+            balls[i].setHeight(diameter);
             balls[i].setColor(Colors.BALL);
             balls[i].setPos(vA[i]);
         }

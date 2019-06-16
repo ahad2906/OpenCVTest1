@@ -5,24 +5,30 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import org.opencv.core.Mat;
 import visualisering.Debug;
+import visualisering.Objects.Bold;
 import visualisering.View.Colors;
 import visualisering.View.IDrawable;
 
 /**
  * Represents a coordinate system grid
  * @author DFallingHammer
- * @version 1.0.4
+ * @version 1.0.5
  */
 public class Grid implements IDrawable {
-    public final float WIDTH, HEIGHT;
-    public final float CELLS_HOR = 41.75f, CELLS_VER = 30.5f, GOAL_LEFT = 2.25f, GOAL_RIGHT = 4, UNIT_MM = 40;
+    public final float WIDTH, HEIGHT, UNIT_WIDTH = 1670, UNIT_HEIGHT = 1220;
+    public final float CELLS_HOR = 9f, CELLS_VER = 7f, GOAL_LEFT = 90f, GOAL_RIGHT = 160;
     private float a, b, c, d, e, f, g, h;
-    public final Vector2D CELL_SPACING;
+    private final Vector2D CELL_SPACING;
+    private final Vector2D UNIT_SCALE;
     Color color;
 
     public Grid(float width, float height){
         this.WIDTH = width;
         this.HEIGHT = height;
+        this.UNIT_SCALE = new Vector2D(
+                WIDTH/UNIT_WIDTH,
+                HEIGHT/UNIT_HEIGHT
+        );
         this.CELL_SPACING = new Vector2D(
                 WIDTH/CELLS_HOR,
                 HEIGHT/CELLS_VER
@@ -99,15 +105,6 @@ public class Grid implements IDrawable {
         g = (float)C.get(6,0);
         h = (float)C.get(7,0);
 
-        /*float w, h;
-        w = (topRight.getX() + bottomRight.getX() - (topLeft.getX() + bottomLeft.getX()))/2f;
-        h = (bottomRight.getY() + bottomLeft.getY() - (topLeft.getY() + topRight.getY()))/2f;
-
-        scale = new Vector2D(WIDTH/w, HEIGHT/h);
-        offset = new Vector2D(
-                (topLeft.getX() + bottomLeft.getX())/2f,
-                (topRight.getY() + topLeft.getY())/2f
-                );*/
     }
 
     /**
@@ -136,13 +133,20 @@ public class Grid implements IDrawable {
 
     /**
      * Used to translate a length from the grid into real world millimeters
-     * @param lenght the lenght to be translated
+     * @param length the lenght to be translated
      * @return float length in millimeters
      */
-    public float translateLengthToMilimeters(float lenght){
-        float new_lenght = lenght/((CELL_SPACING.getX()+CELL_SPACING.getY())/2);
-        new_lenght *= UNIT_MM;
-        return new_lenght;
+    public float translateLengthToMilimeters(float length){
+        return length/((UNIT_SCALE.getX()+UNIT_SCALE.getY())/2f);
+    }
+
+    /**
+     * Used to translate a real world length into a grid length
+     * @param length the lenght in mm to be translated
+     * @return float scaled length
+     */
+    public float translateLengthToScale(float length){
+        return length*((UNIT_SCALE.getX()+UNIT_SCALE.getY())/2f);
     }
 
     @Override

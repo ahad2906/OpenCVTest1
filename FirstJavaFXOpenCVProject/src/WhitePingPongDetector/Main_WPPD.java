@@ -12,7 +12,6 @@ import javafx.stage.WindowEvent;
 import org.opencv.core.Core;
 import visualisering.VisuController;
 import visualisering.View.Colors;
-import visualisering.View.Kort;
 
 
 public class Main_WPPD extends Application {
@@ -47,10 +46,9 @@ public class Main_WPPD extends Application {
             int width = 600, height = 400;
             Stage stage = new Stage();
             Group root = new Group();
-            Canvas canvas = new Canvas(width, height);
 
             VisuController visuController = new VisuController(controller);
-            visuController.createMap(new Kort(canvas));
+            Canvas canvas = visuController.createView(width);
 
 
             root.getChildren().add(canvas);

@@ -56,6 +56,9 @@ public class RobotController {
                     //Fuld smader mod bolden
                     robotSocket.driveForward(dist-MIN_DIST);
 
+                    //giver den lige en pause
+                    Thread.sleep(200);
+
                     //Retter lige op igen
                     turnTowardstarget();
 
@@ -72,6 +75,8 @@ public class RobotController {
                 robotSocket.driveBackward(MIN_DIST);
 
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             isTargeting = false;

@@ -21,14 +21,13 @@ public class Kort {
     private Set<Forhindring> obstacles;
     private Set<IDrawable> debug;
     private Canvas canvas;
-    private boolean scaled = false;
+    private final float RATIO = 41.75f/30.5f;
     private final float WIDTH, HEIGHT;
 
-    public Kort(Canvas canvas){
-        this.canvas = canvas;
-        this.WIDTH = (float)canvas.getWidth();
-        this.HEIGHT = (float)canvas.getHeight();
-
+    public Kort(float width){
+        this.WIDTH = width;
+        this.HEIGHT = WIDTH*RATIO;
+        this.canvas = new Canvas(WIDTH, HEIGHT);
     }
 
     public void setScale(Vector2D[] corners){
@@ -66,10 +65,6 @@ public class Kort {
 
     public Canvas getCanvas() {
         return canvas;
-    }
-
-    public boolean isScaled() {
-        return scaled;
     }
 
     public float getWIDTH() {
