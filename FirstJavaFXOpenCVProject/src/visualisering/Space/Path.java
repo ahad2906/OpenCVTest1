@@ -3,9 +3,11 @@ package visualisering.Space;
 import com.sun.istack.internal.NotNull;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import visualisering.Objects.Kryds;
 import visualisering.Objects.Mål;
 import visualisering.Objects.SpaceObject;
 import visualisering.View.IDrawable;
+import visualisering.View.Kort;
 
 import java.lang.annotation.Target;
 import java.util.ArrayList;
@@ -13,15 +15,15 @@ import java.util.List;
 import java.util.Vector;
 
 public class Path implements IDrawable {
-    private Grid grid;
+    private final Kort map;
     private List<Vector2D> path;
     private SpaceObject target;
     private boolean isCloseEdge;
     private final int WIDTH = 2;
     private Color color;
 
-    public Path (@NotNull Vector2D startPoint, Grid grid){
-        this.grid = grid;
+    public Path (@NotNull Vector2D startPoint, Kort map){
+        this.map = map;
         path = new ArrayList<>();
         path.add(startPoint);
     }
@@ -31,16 +33,24 @@ public class Path implements IDrawable {
     }
 
     public void setTarget(SpaceObject obj){
-        target = obj;
+        this.target = obj;
 
         /*if (target instanceof Mål){
             //TODO
         }*/
 
+        Grid grid = map.getGrid();
+        Kryds cross = map.getCross();
+
         Vector2D target = this.target.getPos(),
                 pos = path.get(0), attackPoint;
 
-        if (target.getX() < grid.CELL_SPACING.getX()){
+        if (cross.isInside(target)){
+            isCloseEdge = true;
+            //TODO: vælg tilhørende angrebspunkt
+            attackPoint = target;//TODO
+        }
+        else if (target.getX() < grid.CELL_SPACING.getX()){
             isCloseEdge = true;
             if (target.getY() < grid.CELL_SPACING.getY()){
                 attackPoint = new Vector2D(
@@ -82,7 +92,6 @@ public class Path implements IDrawable {
             }
         }
         else {
-            //TODO: tage højde for krydset
             float d = grid.translateLengthToScale(50);
             float D = Vector2D.Distance(pos, target);
             float x1 = pos.getX(), x2 = target.getX(), y1 = pos.getY(), y2 = target.getY();
@@ -90,10 +99,15 @@ public class Path implements IDrawable {
                     x1+(d/D)*(x2-x1),
                     y1+(d/D)*(y2-y1)
             );
-
         }
 
         path.add(1, attackPoint);
+
+        if (cross.intersects(pos, attackPoint)){
+            System.out.println("Path goes through cross");
+            //TODO: tilføj ekstra punkter så man kører udenom
+        }
+
     }
 
     public float getLength(){
