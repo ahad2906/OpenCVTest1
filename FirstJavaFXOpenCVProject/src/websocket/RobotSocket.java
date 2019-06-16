@@ -18,7 +18,6 @@ public class RobotSocket {
             SUCK = "e",
             BLOW = "r",
             MUSIC = "sound";
-    private boolean sucking;
 
     public void start() throws IOException {
         clientSocket = new Socket("172.20.10.9", 6789);
@@ -49,20 +48,16 @@ public class RobotSocket {
     }
 
     public void suck() throws IOException {
-        if (!sucking){
-            sendMessage(SUCK);
-            sucking = true;
-        }
+        sendMessage(SUCK);
     }
 
     public void blow() throws IOException {
-        sucking = false;
         sendMessage(BLOW);
     }
 
     public void stop() throws IOException {
-        start();
         blow();
+        start();
         outToServer.writeBytes("exit\n");
     }
 
@@ -72,7 +67,5 @@ public class RobotSocket {
         outToServer.close();
         clientSocket.close();
         inFromServer.close();
-
-        sucking = false;
     }
 }

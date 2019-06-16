@@ -3,6 +3,7 @@ package websocket;
 import com.sun.istack.internal.NotNull;
 import visualisering.Objects.Robot;
 import visualisering.Space.Grid;
+import visualisering.Space.Path;
 import visualisering.Space.Vector2D;
 
 import java.io.IOException;
@@ -13,11 +14,12 @@ import java.util.concurrent.TimeUnit;
 public class RobotController {
     private Robot robot;
     private Grid grid;
+    private Path path;
     private RobotSocket robotSocket;
     private Thread t;
     private boolean isTargeting, motorsStarted;
     private ScheduledExecutorService schedule;
-    private final float MIN_DIST = 5f, OFFSET = 4f;
+    private final float MIN_DIST = 5f, OFFSET = 4f, BACK_DIST = 8f;
 
     public RobotController(Grid grid){
         this.grid = grid;
@@ -36,61 +38,44 @@ public class RobotController {
 
     public void update(){
         if (isTargeting) {
-            //Sug de bolde
+
             try {
+                //Sug de bolde
                 robotSocket.suck();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
 
-            //Drej
-            turnTowardstarget();
+                Vector2D target;
+                while (path.size() >= 2){
+                    robot.setTarget(path.getNext());
 
-            //Kører mod target
-            float dist = (grid.translateLengthToMilimeters(robot.getDistToTarget()) -
-                    grid.translateLengthToMilimeters(robot.getHeight())/2) / 10 - OFFSET;
-            System.out.println("Distance to target:  " + dist);
-            try {
-                //Hvis afstanden er længere end MIN_DIST så køres der hurtigt op til
-                if (dist > MIN_DIST){
-                    //Fuld smader mod bolden
-                    robotSocket.driveForward(dist-MIN_DIST);
 
-                    //giver den lige en pause
-                    Thread.sleep(200);
+                    //Beregner vinklen til target
+                    float angle = robot.getAngleToTarget();
+                    //Drejer mod target
+                    robotSocket.turn(angle);
 
-                    //Retter lige op igen
-                    turnTowardstarget();
-
-                    //henter afstanden igen
-                    dist = (grid.translateLengthToMilimeters(robot.getDistToTarget()) -
-                            grid.translateLengthToMilimeters(robot.getHeight())/2) / 10 + OFFSET;
+                    //Beregner afstanden til target
+                    float dist = (grid.translateLengthToMilimeters(robot.getDistToTarget()) -
+                            grid.translateLengthToMilimeters(robot.getHeight())/2) / 10;
+                    //Hvis path'en er lavere end 2, er det en bold og derfor køres der langsomt
+                    if (path.size() < 2){
+                        robotSocket.driveSlowForward(dist);
+                    }
+                    //Ellers køres der alm hastighed mod target
+                    else {
+                        robotSocket.driveForward(dist);
+                    }
                 }
 
-                //TODO: check længden fra banderet så man ikke kommer til at køre in i det
-                //Kører langsomt imod bolden
-                robotSocket.driveSlowForward(dist);
+                //Hvis robotten har lavet en manøvre tæt på banderet bakker den
+                if (path.isCloseEdge()){
+                    robotSocket.driveBackward(BACK_DIST);
+                }
 
-                //Kører tilbage hvis roboten er nær bander
-                robotSocket.driveBackward(MIN_DIST);
+                isTargeting = false;
 
             } catch (IOException e) {
                 e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
-            isTargeting = false;
-        }
-    }
-
-    private void turnTowardstarget(){
-        //Drejer mod target
-        float angle = robot.getAngleToTarget();
-        System.out.println("Angle to target: " + angle+ " robot angle: "+robot.getRotation());
-        try {
-            robotSocket.turn(angle);
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
@@ -98,14 +83,16 @@ public class RobotController {
         this.robot = robot;
     }
 
-    public void setRobotTarget(@NotNull final Vector2D target){
+    public void target(@NotNull Path path){
         if (!isTargeting && robot != null){
-            System.out.println("Robot is targeting target at pos: "+target);
-            robot.setTarget(target);
+            this.path = path;
             isTargeting = true;
         }
     }
 
+    public boolean isTargeting(){
+        return isTargeting;
+    }
 
     public void close(){
     schedule.shutdown();

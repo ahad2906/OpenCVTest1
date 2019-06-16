@@ -70,12 +70,12 @@ public class VisuController {
                     updatePositions();
 
                     //PathFinding
-                    createPath();
-                    Vector2D target = path.getNext();
-                    if (target != null) {
-                        robotController.setRobotTarget(target);
+                    if (!robotController.isTargeting()) {
+                        createPath();
+                        if (path.size() > 1) {
+                            robotController.target(path);
+                        }
                     }
-
 
                     //Draw map
                     map.update();
@@ -126,32 +126,24 @@ public class VisuController {
     private void createPath() {
         if (path != null) map.removeDebugObject(path);
 
-        path = new Path(map.getRobot().getPos());
+        path = new Path(map.getRobot().getPos(), map.getGrid());
         path.setColor(Colors.PATH);
 
-        Set<Bold> balls = new HashSet<>(map.getBalls());
         Bold ball = null;
         float min = Float.MAX_VALUE;
-        int size = balls.size();
-        for (int i = 0; i < size; i++){
-            for (Bold b : balls){
-                float dist = Vector2D.Distance(b.getPos(), path.getLast());
-                if (dist < min){
-                    min = dist;
-                    ball = b;
-                }
+        for (Bold b : map.getBalls()){
+            float dist = Vector2D.Distance(b.getPos(), path.getLast());
+            if (dist < min){
+                min = dist;
+                ball = b;
             }
-            if (ball != null) {
-                min = Float.MAX_VALUE;
-                balls.remove(ball);
-                path.addPoint(ball.getPos());
-                ball = null;
-            }
+        }
+        if (ball != null) {
+            path.setTarget(ball);
         }
         map.addDebugObject(path);
 
-        System.out.println("Path lenght is: "+path.getLenght());
-        System.out.println("Path lenght in mm is: "+map.getGrid().translateLengthToMilimeters(path.getLenght()));
+        System.out.println("Path lenght in mm is: "+map.getGrid().translateLengthToMilimeters(path.getLength()));
     }
 
     private void createObjects(Grid grid){

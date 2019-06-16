@@ -15,10 +15,11 @@ import visualisering.View.IDrawable;
  * @version 1.0.5
  */
 public class Grid implements IDrawable {
-    public final float WIDTH, HEIGHT, UNIT_WIDTH = 1670, UNIT_HEIGHT = 1220;
-    public final float CELLS_HOR = 9f, CELLS_VER = 7f, GOAL_LEFT = 90f, GOAL_RIGHT = 160;
+    public final float WIDTH, HEIGHT;
+    public final float CELLS_HOR = 9f, CELLS_VER = 7f, GOAL_LEFT = 90f,
+            GOAL_RIGHT = 160, UNIT_WIDTH = 1670, UNIT_HEIGHT = 1220;
     private float a, b, c, d, e, f, g, h;
-    private final Vector2D CELL_SPACING;
+    public final Vector2D CELL_SPACING;
     private final Vector2D UNIT_SCALE;
     Color color;
 
@@ -29,7 +30,7 @@ public class Grid implements IDrawable {
                 WIDTH/UNIT_WIDTH,
                 HEIGHT/UNIT_HEIGHT
         );
-        this.CELL_SPACING = new Vector2D(
+        CELL_SPACING = new Vector2D(
                 WIDTH/CELLS_HOR,
                 HEIGHT/CELLS_VER
         );

@@ -3,23 +3,100 @@ package visualisering.Space;
 import com.sun.istack.internal.NotNull;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import visualisering.Objects.Mål;
+import visualisering.Objects.SpaceObject;
 import visualisering.View.IDrawable;
 
+import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
 public class Path implements IDrawable {
+    private Grid grid;
     private List<Vector2D> path;
+    private SpaceObject target;
+    private boolean isCloseEdge;
     private final int WIDTH = 2;
     private Color color;
 
-    public Path (@NotNull Vector2D startPoint){
+    public Path (@NotNull Vector2D startPoint, Grid grid){
+        this.grid = grid;
         path = new ArrayList<>();
         path.add(startPoint);
     }
 
-    public float getLenght(){
+    public boolean isCloseEdge(){
+        return isCloseEdge;
+    }
+
+    public void setTarget(SpaceObject obj){
+        target = obj;
+
+        /*if (target instanceof Mål){
+            //TODO
+        }*/
+
+        Vector2D target = this.target.getPos(),
+                pos = path.get(0), attackPoint;
+
+        if (target.getX() < grid.CELL_SPACING.getX()){
+            isCloseEdge = true;
+            if (target.getY() < grid.CELL_SPACING.getY()){
+                attackPoint = new Vector2D(
+                        grid.CELL_SPACING.getX(),
+                        grid.CELL_SPACING.getY()
+                );
+            }
+            else if (target.getY() > grid.CELL_SPACING.getY()*(grid.CELLS_VER-1)){
+                attackPoint = new Vector2D(
+                        grid.CELL_SPACING.getX(),
+                        grid.CELL_SPACING.getY()*(grid.CELLS_VER-1)
+                );
+            }
+            else {
+                attackPoint = new Vector2D(
+                        grid.CELL_SPACING.getX(),
+                        target.getY()
+                );
+            }
+        } else if (target.getY() > grid.CELL_SPACING.getX()*(grid.CELLS_HOR-1)){
+            isCloseEdge = true;
+            if (target.getY() < grid.CELL_SPACING.getY()){
+                attackPoint = new Vector2D(
+                        grid.CELL_SPACING.getX()*(grid.CELLS_HOR-1),
+                        grid.CELL_SPACING.getY()
+                );
+            }
+            else if (target.getY() > grid.CELL_SPACING.getY()*(grid.CELLS_VER-1)){
+                attackPoint = new Vector2D(
+                        grid.CELL_SPACING.getX()*(grid.CELLS_HOR-1),
+                        grid.CELL_SPACING.getY()*(grid.CELLS_VER-1)
+                );
+            }
+            else {
+                attackPoint = new Vector2D(
+                        grid.CELL_SPACING.getX()*(grid.CELLS_HOR-1),
+                        target.getY()
+                );
+            }
+        }
+        else {
+            //TODO: tage højde for krydset
+            float d = grid.translateLengthToScale(50);
+            float D = Vector2D.Distance(pos, target);
+            float x1 = pos.getX(), x2 = target.getX(), y1 = pos.getY(), y2 = target.getY();
+            attackPoint = new Vector2D(
+                    x1+(d/D)*(x2-x1),
+                    y1+(d/D)*(y2-y1)
+            );
+
+        }
+
+        path.add(1, attackPoint);
+    }
+
+    public float getLength(){
         if (path.size() < 2) //Return if path size is lower than 2.
             return 0;
 
@@ -43,12 +120,14 @@ public class Path implements IDrawable {
         return path.get(path.size()-1);
     }
 
-    public void addPoint(@NotNull Vector2D point){
-        path.add(point);
+    public Vector2D getNext(){
+        if (path.size() >= 2)
+            return path.remove(1);
+        else return null;
     }
 
-    public Vector2D getNext(){
-        return path.get(1);
+    public int size(){
+        return path.size();
     }
 
     @Override
