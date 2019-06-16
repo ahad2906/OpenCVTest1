@@ -75,6 +75,15 @@ public class Controller2 {
     @FXML
     private Label hsvValues2;
 
+    //Her er målene til de diverse objekter til systemet/banen/boldene/robotten
+    double camHeight = 158; // SKAL måles hver gang der testes med nyt opstilling
+    double objectHeightBolde = 3.9;//3.7-4 cm
+    double objectHeightKors = 3.5;
+    double objectHeightBaneHjørne = 7;
+    double objectHeightRobotGreen = 27.4; // skal helst måles hver gang der testes med nyt opstilling
+    double objectHeightRobotBlue = 28.4; // skal helst måles hver gang der testes med nyt opstilling
+
+
     private Point[] field = new Point[4];
 
     private Point[] cross = new Point[12];
@@ -331,14 +340,12 @@ public class Controller2 {
                             Point[] aa = approxCurve_temp.toArray(); //TODO her er Points til plus
                             Point[] projectedPointsCross = new Point[12];
                             //TODO Herunder er korset projekteret
-                            double camHeight = 164;
-                            double objectHeight = 3.5;
                             centerpoint = new Point(frame.width()/2, frame.height()/2);
                             //Sidste element er hjørnerne
 
                             for (int k = 0; k<aa.length; k++){
                                 Point p = aa[k];
-                                projectedPointsCross[k] = projectPoint(camHeight,objectHeight,centerpoint,p);
+                                projectedPointsCross[k] = projectPoint(camHeight,objectHeightKors,centerpoint,p);
                                 //System.out.println(projectedPointsCross[k].toString() + " Projected");
                             }
                             cross = projectedPointsCross;
@@ -371,14 +378,12 @@ public class Controller2 {
                                 //TODO Projekterede punkter skal testes
                                 Point[] projectedPointsField = new Point[4];
                                 //TODO varier variable alt efter opstilling
-                                double camHeight = 164;
-                                double objectHeight = 7;
                                 centerpoint = new Point(frame.width()/2, frame.height()/2);
                                 //Sidste element er hjørnerne
 
                                 for (int k = 0; k<as.length; k++){
                                     Point p = as[k];
-                                    projectedPointsField[k] = projectPoint(camHeight,objectHeight,centerpoint,p);
+                                    projectedPointsField[k] = projectPoint(camHeight,objectHeightBaneHjørne,centerpoint,p);
                                     // TODO System.out.println(projectedPointsField[k].toString() + " Projected");
                                 }
 
@@ -616,8 +621,6 @@ public class Controller2 {
                     Imgproc.HoughCircles(detectedEdges, circles, Imgproc.CV_HOUGH_GRADIENT, 1, 10, 19, 18, 0, 10);
                     ArrayList<Point> returnValue = new ArrayList<>();
 
-                    double camHeight = 164;
-                    double objectHeight = 3.9;//3.7-4 cm
                     centerpoint = new Point(frame.width()/2, frame.height()/2);
 
                     for(int i = 0; i < circles.cols(); i++) {
@@ -630,7 +633,7 @@ public class Controller2 {
                         String koord = Math.round(c[0]) + ": " + Math.round(c[1]);
                         Imgproc.putText(frame, koord, center, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 255, 0), 2);*/
                         //System.out.println(center.toString() + " almindelig");
-                        Point temp = projectPoint(camHeight,objectHeight, centerpoint, center);
+                        Point temp = projectPoint(camHeight,objectHeightBolde, centerpoint, center);
                         returnValue.add(temp);
                         //System.out.println(temp.toString() + " projected");
                     }
@@ -658,13 +661,10 @@ public class Controller2 {
 
         ArrayList<Point> points = new ArrayList<>();
 
-        double camHeight = 164;
-        double objectHeightGreen = 17.5;
-        double objectHeightBlue = 16.8;
         Point blue = grabFrameRobotPoint(new Scalar(100,150,0), new Scalar(140,255,255));
-        Point blueProjected = projectPoint(camHeight,objectHeightBlue,centerpoint, blue);
+        Point blueProjected = projectPoint(camHeight,objectHeightRobotBlue,centerpoint, blue);
         Point green = grabFrameRobotPoint(new Scalar(40, 70, 0 ), new Scalar(75, 255, 255));
-        Point greenProjected = projectPoint(camHeight,objectHeightGreen,centerpoint, green);
+        Point greenProjected = projectPoint(camHeight,objectHeightRobotGreen,centerpoint, green);
 
         /*System.out.println(blue.toString() + " almindelig blå");
         System.out.println(blueProjected.toString() + " projected blå");
