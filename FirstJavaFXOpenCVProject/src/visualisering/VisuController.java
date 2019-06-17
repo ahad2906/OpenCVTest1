@@ -126,7 +126,7 @@ public class VisuController {
     private void createPath() {
         if (path != null) map.removeDebugObject(path);
 
-        path = new Path(map.getRobot().getPos(), map.getGrid());
+        path = new Path(map.getRobot().getPos(), map);
         path.setColor(Colors.PATH);
 
         Bold ball = null;
@@ -233,7 +233,7 @@ public class VisuController {
             cross.setColor(Colors.OBSTACLE);
         }
 
-        cross.setPoints(vA);
+        cross.setPoints(vA, 0);
 
         /*
         //Beregner ændringen siden sidste check
