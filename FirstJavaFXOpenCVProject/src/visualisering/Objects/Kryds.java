@@ -12,7 +12,7 @@ public class Kryds extends SpaceObject implements IDrawable {
     private Vector2D[] corners;
     private Vector2D[] attackPoints;
 
-    public void setPoints(Vector2D[] vA, float attack_d){
+    public void setPoints(Vector2D[] vA, float attack_d, float max_width){
         if (Vector2D.Distance(vA[0], vA[11]) > Vector2D.Distance(vA[11], vA[10])){
             Vector2D[] newVa = Arrays.copyOf(vA, vA.length);
             newVa[0] = vA[11];
@@ -44,6 +44,9 @@ public class Kryds extends SpaceObject implements IDrawable {
         //Finder højde og bredde
         float width = Vector2D.Distance(hor[0], hor[1]);
         float height = Vector2D.Distance(ver[0], ver[1]);
+
+        if (width > max_width)
+            return;
 
         //Sætter parameterne
         setWidth(width);

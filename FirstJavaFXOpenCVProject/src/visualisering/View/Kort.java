@@ -21,7 +21,7 @@ public class Kort {
     private Set<Forhindring> obstacles;
     private Set<IDrawable> debug;
     private Canvas canvas;
-    private final float RATIO = 41.75f/30.5f;
+    private final float RATIO = Grid.UNIT_HEIGHT/Grid.UNIT_WIDTH;
     private final float WIDTH, HEIGHT;
 
     public Kort(float width){
@@ -110,7 +110,12 @@ public class Kort {
     }
 
     public void removeDebugObject(IDrawable obj){
-        debug.remove(obj);
+        try {
+            debug.remove(obj);
+        }
+        catch (NullPointerException e){
+
+        }
     }
 
     public void update(){

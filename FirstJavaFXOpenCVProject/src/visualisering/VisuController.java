@@ -64,21 +64,26 @@ public class VisuController {
                 //Runs every UPDATETIME
                 long cur = System.currentTimeMillis();
                 if (cur - lastTime > UPDATETIME) {
-                    lastTime = cur;
+                    try {
+                        lastTime = cur;
 
-                    //Updating positions
-                    updatePositions();
+                        //Updating positions
+                        updatePositions();
 
-                    //PathFinding
-                    if (!robotController.isTargeting()) {
-                        createPath();
-                        if (path.size() > 1) {
-                            robotController.target(path);
+                        //PathFinding
+                        if (!robotController.isTargeting()) {
+                            createPath();
+                            if (path.size() > 1) {
+                                robotController.target(path);
+                            }
                         }
-                    }
 
-                    //Draw map
-                    map.update();
+                        //Draw map
+                        map.update();
+                    }
+                    catch (NullPointerException e){
+                        e.printStackTrace();
+                    }
                 }
             }
         };
@@ -96,12 +101,13 @@ public class VisuController {
         List<Point> ballPoints = otherController.getBalls();
 
         //Update balls
-        if (ballPoints != null && ballPoints.size() >= nbOfBalls){
+        if (map.getRobot() != null && ballPoints != null && ballPoints.size() >= nbOfBalls){
             for (Point p : ballPoints){
                 //Oversætter og skalerer punktet til en Vector2D
                 Vector2D v = grid.translatePos(new Vector2D((float)p.x, (float)p.y));
                 //Hvis bolden er indenfor banen tilføjes denne til listen
-                if (v.getY() < grid.HEIGHT && v.getY() > 0 && v.getX() < grid.WIDTH && v.getX() > 0){
+                if (v.getY() < grid.HEIGHT && v.getY() > 0 && v.getX() < grid.WIDTH && v.getX() > 0
+                        && grid.translateLengthToMilimeters(Vector2D.Distance(v, map.getRobot().getPos())) > 60){
                     ballPos.add(v);
                 }
             }
@@ -179,10 +185,6 @@ public class VisuController {
         goal.setColor(Colors.GOAL);
         goals.add(goal);
         map.setGoals(goals);
-
-        //Balls:
-        Vector2D[] vA = TestData.getBalls();
-        map.setBalls(createBalls(vA, grid));
     }
 
     private Set<Bold> createBalls(Vector2D[] vA, Grid grid){
@@ -233,7 +235,7 @@ public class VisuController {
             cross.setColor(Colors.OBSTACLE);
         }
 
-        cross.setPoints(vA, 0);
+        cross.setPoints(vA, 0, grid.translateLengthToScale(250));
 
         /*
         //Beregner ændringen siden sidste check

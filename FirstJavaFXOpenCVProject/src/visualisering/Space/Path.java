@@ -43,63 +43,69 @@ public class Path implements IDrawable {
         Kryds cross = map.getCross();
 
         Vector2D target = this.target.getPos(),
-                pos = path.get(0), attackPoint;
+                pos = path.get(0), attackPoint = null;
+        path.add(target);
 
-        if (cross.isInside(target)){
+        float OFFSET = grid.translateLengthToScale(35);
+
+        /*if (cross.isInside(target)){
             isCloseEdge = true;
             //TODO: vælg tilhørende angrebspunkt
             attackPoint = target;//TODO
         }
-        else if (target.getX() < grid.CELL_SPACING.getX()){
+        else*/ if (target.getX() < grid.CELL_SPACING.getX()){
             isCloseEdge = true;
             if (target.getY() < grid.CELL_SPACING.getY()){
                 attackPoint = new Vector2D(
-                        grid.CELL_SPACING.getX(),
-                        grid.CELL_SPACING.getY()
+                        grid.CELL_SPACING.getX()+OFFSET,
+                        grid.CELL_SPACING.getY()+OFFSET
                 );
             }
-            else if (target.getY() > grid.CELL_SPACING.getY()*(grid.CELLS_VER-1)){
+            else if (target.getY() > grid.CELL_SPACING.getY()*(Grid.CELLS_VER -1)){
                 attackPoint = new Vector2D(
-                        grid.CELL_SPACING.getX(),
-                        grid.CELL_SPACING.getY()*(grid.CELLS_VER-1)
+                        grid.CELL_SPACING.getX()+OFFSET,
+                        grid.CELL_SPACING.getY()*(Grid.CELLS_VER -1)-OFFSET
                 );
             }
             else {
                 attackPoint = new Vector2D(
-                        grid.CELL_SPACING.getX(),
+                        grid.CELL_SPACING.getX()+OFFSET,
                         target.getY()
                 );
             }
-        } else if (target.getY() > grid.CELL_SPACING.getX()*(grid.CELLS_HOR-1)){
+        } else if (target.getX() > grid.CELL_SPACING.getX()*(Grid.CELLS_HOR -1)){
             isCloseEdge = true;
             if (target.getY() < grid.CELL_SPACING.getY()){
                 attackPoint = new Vector2D(
-                        grid.CELL_SPACING.getX()*(grid.CELLS_HOR-1),
-                        grid.CELL_SPACING.getY()
+                        grid.CELL_SPACING.getX()*(Grid.CELLS_HOR -1)-OFFSET,
+                        grid.CELL_SPACING.getY()+OFFSET
                 );
             }
-            else if (target.getY() > grid.CELL_SPACING.getY()*(grid.CELLS_VER-1)){
+            else if (target.getY() > grid.CELL_SPACING.getY()*(Grid.CELLS_VER -1)){
                 attackPoint = new Vector2D(
-                        grid.CELL_SPACING.getX()*(grid.CELLS_HOR-1),
-                        grid.CELL_SPACING.getY()*(grid.CELLS_VER-1)
+                        grid.CELL_SPACING.getX()*(Grid.CELLS_HOR -1)-OFFSET,
+                        grid.CELL_SPACING.getY()*(Grid.CELLS_VER -1)-OFFSET
                 );
             }
             else {
                 attackPoint = new Vector2D(
-                        grid.CELL_SPACING.getX()*(grid.CELLS_HOR-1),
+                        grid.CELL_SPACING.getX()*(Grid.CELLS_HOR -1)-OFFSET,
                         target.getY()
                 );
             }
         }
         else {
-            float d = grid.translateLengthToScale(50);
+            float d = grid.translateLengthToScale(60);
             float D = Vector2D.Distance(pos, target);
             float x1 = pos.getX(), x2 = target.getX(), y1 = pos.getY(), y2 = target.getY();
             attackPoint = new Vector2D(
-                    x1+(d/D)*(x2-x1),
-                    y1+(d/D)*(y2-y1)
+                    x2-(d/D)*(x2-x1),
+                    y2-(d/D)*(y2-y1)
             );
         }
+
+        System.out.println("Path, target is at: "+target+" and attackpoint at: "+attackPoint);
+        System.out.println("Path, isClosesEdge = "+isCloseEdge);
 
         path.add(1, attackPoint);
 

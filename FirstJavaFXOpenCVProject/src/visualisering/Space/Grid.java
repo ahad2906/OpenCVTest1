@@ -3,11 +3,13 @@ package visualisering.Space;
 import Jama.Matrix;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-import org.opencv.core.Mat;
 import visualisering.Debug;
-import visualisering.Objects.Bold;
 import visualisering.View.Colors;
 import visualisering.View.IDrawable;
+
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Represents a coordinate system grid
@@ -15,21 +17,17 @@ import visualisering.View.IDrawable;
  * @version 1.0.5
  */
 public class Grid implements IDrawable {
-    public final float WIDTH, HEIGHT;
-    public final float CELLS_HOR = 9f, CELLS_VER = 7f, GOAL_LEFT = 90f,
-            GOAL_RIGHT = 160, UNIT_WIDTH = 1670, UNIT_HEIGHT = 1220;
+    public final float WIDTH, HEIGHT, UNIT_SCALE;
+    public static final float CELLS_HOR = 9f, CELLS_VER = 7f, GOAL_LEFT = 90f,
+            GOAL_RIGHT = 160, UNIT_WIDTH = 1675, UNIT_HEIGHT = 1210, OFFSET = .82f;
     private float a, b, c, d, e, f, g, h;
     public final Vector2D CELL_SPACING;
-    private final Vector2D UNIT_SCALE;
     Color color;
 
     public Grid(float width, float height){
         this.WIDTH = width;
         this.HEIGHT = height;
-        this.UNIT_SCALE = new Vector2D(
-                WIDTH/UNIT_WIDTH,
-                HEIGHT/UNIT_HEIGHT
-        );
+        this.UNIT_SCALE = WIDTH/UNIT_WIDTH;
         CELL_SPACING = new Vector2D(
                 WIDTH/CELLS_HOR,
                 HEIGHT/CELLS_VER
@@ -44,36 +42,44 @@ public class Grid implements IDrawable {
         //First find the corners
         int mg = 20;//Margin
 
-        Vector2D topLeft = corners[0];
-        for (int i = 1; i < corners.length; i++){
-            if (corners[i].getY() < topLeft.getY()+mg && corners[i].getX() < topLeft.getX()+mg){
-                topLeft = corners[i];
+        List<Vector2D> c_list = new LinkedList<>(Arrays.asList(corners));
+
+        Vector2D topLeft = c_list.get(0);
+        float dist = Float.MAX_VALUE;
+        for (Vector2D v : c_list){
+            if (v.getSqrMagnitude() < dist){
+                dist = v.getSqrMagnitude();
+                topLeft = v;
             }
         }
 
-        Vector2D topRight = corners[0];
-        for (int i = 1; i < corners.length; i++){
-            if (corners[i].getY() < topRight.getY()+mg && corners[i].getX() > topRight.getX()-mg){
-                topRight = corners[i];
+        c_list.remove(topLeft);
+
+        Vector2D bottomRight = c_list.get(0);
+        dist = Float.MIN_VALUE;
+        for (Vector2D v : c_list){
+            if (v.getSqrMagnitude() > dist){
+                dist = v.getSqrMagnitude();
+                bottomRight = v;
             }
         }
 
-        Vector2D bottomLeft = corners[0];
-        for (int i = 1; i < corners.length; i++){
-            if (corners[i].getY() > bottomLeft.getY()-mg && corners[i].getX() < bottomLeft.getX()+mg){
-                bottomLeft = corners[i];
-            }
+        c_list.remove(bottomRight);
+
+        Vector2D topRight = c_list.get(0);
+        Vector2D bottomLeft = c_list.get(1);
+        if (topRight.getX() < bottomLeft.getX()){
+            Vector2D v = topRight;
+            topRight = bottomLeft;
+            bottomLeft = v;
         }
 
-        Vector2D bottomRight = corners[0];
-        for (int i = 1; i < corners.length; i++){
-            if (corners[i].getY() > bottomRight.getY()-mg && corners[i].getX() > bottomRight.getX()-mg){
-                bottomRight = corners[i];
-            }
-        }
+        c_list.clear();
 
         if (Debug.DEBUG)
-            System.out.println("TL: "+topLeft+" TR: "+topRight+" BL: "+bottomLeft+" BR: "+bottomRight);
+            System.out.println("TL: "+topLeft+" TR: "+topRight+" BL: "+bottomLeft+" BR: "+bottomRight +
+                    "Width: "+WIDTH+" Height: "+HEIGHT);
+
 
         float x1 = topLeft.getX(), y1 = topLeft.getY(),
                 x2 = topRight.getX(), y2 = topRight.getY(),
@@ -82,19 +88,19 @@ public class Grid implements IDrawable {
                 X1 = 0, Y1 = 0, X2 = WIDTH, Y2 = 0,
                 X3 = WIDTH, Y3 = HEIGHT, X4 = 0, Y4 = HEIGHT;
 
-        Matrix A = new Matrix(new double[][] {
-                {x1, y1, 1, 0, 0, 0, -x1*X1, -y1*X1},
-                {x2, y2, 1, 0, 0, 0, -x2*X2, -y2*X2},
-                {x3, y3, 1, 0, 0, 0, -x3*X3, -y3*X3},
-                {x4, x4, 1, 0, 0, 0, -x4*X4, -y4*X4},
-                {0, 0, 0, x1, y1, 1, -x1*Y1, -y1*Y1},
-                {0, 0, 0, x2, y2, 1, -x2*Y2, -y2*Y2},
-                {0, 0, 0, x3, y3, 1, -x3*Y3, -y3*Y3},
-                {0, 0, 0, x4, y4, 1, -x4*Y4, -y4*Y4}});
+        double M_a[][] = { { x1, y1, 1, 0, 0, 0, -x1 * X1, -y1 * X1 },
+                { x2, y2, 1, 0, 0, 0, -x2 * X2, -y2 * X2 },
+                { x3, y3, 1, 0, 0, 0, -x3 * X3, -y3 * X3 },
+                { x4, y4, 1, 0, 0, 0, -x4 * X4, -y4 * X4 },
+                { 0, 0, 0, x1, y1, 1, -x1 * Y1, -y1 * Y1 },
+                { 0, 0, 0, x2, y2, 1, -x2 * Y2, -y2 * Y2 },
+                { 0, 0, 0, x3, y3, 1, -x3 * Y3, -y3 * Y3 },
+                { 0, 0, 0, x4, y4, 1, -x4 * Y4, -y4 * Y4 } };
 
-        Matrix B = new Matrix(new double[][]{
-                {X1}, {X2}, {X3}, {X4},
-                {Y1}, {Y2}, {Y3}, {Y4}});
+        double M_b[][] = { { X1 }, { X2 }, { X3 }, { X4 }, { Y1 }, { Y2 },
+                { Y3 }, { Y4 } };
+        Matrix A = new Matrix(M_a);
+        Matrix B = new Matrix(M_b);
 
         Matrix C = A.solve(B);
         a = (float)C.get(0,0);
@@ -138,7 +144,7 @@ public class Grid implements IDrawable {
      * @return float length in millimeters
      */
     public float translateLengthToMilimeters(float length){
-        return length/((UNIT_SCALE.getX()+UNIT_SCALE.getY())/2f);
+        return length/UNIT_SCALE*OFFSET;
     }
 
     /**
@@ -147,7 +153,7 @@ public class Grid implements IDrawable {
      * @return float scaled length
      */
     public float translateLengthToScale(float length){
-        return length*((UNIT_SCALE.getX()+UNIT_SCALE.getY())/2f);
+        return length*UNIT_SCALE*(2-OFFSET);
     }
 
     @Override

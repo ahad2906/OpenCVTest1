@@ -76,12 +76,12 @@ public class Controller2 {
     private Label hsvValues2;
 
     //Her er målene til de diverse objekter til systemet/banen/boldene/robotten
-    double camHeight = 158; // SKAL måles hver gang der testes med nyt opstilling
+    double camHeight = 171; // SKAL måles hver gang der testes med nyt opstilling
     double objectHeightBolde = 3.9;//3.7-4 cm
     double objectHeightKors = 3.5;
     double objectHeightBaneHjørne = 7;
-    double objectHeightRobotGreen = 27.4; // skal helst måles hver gang der testes med nyt opstilling
-    double objectHeightRobotBlue = 28.4; // skal helst måles hver gang der testes med nyt opstilling
+    double objectHeightRobotGreen = 29.2; // skal helst måles hver gang der testes med nyt opstilling
+    double objectHeightRobotBlue = 30.4; // skal helst måles hver gang der testes med nyt opstilling
 
 
     private Point[] field = new Point[4];
@@ -663,7 +663,7 @@ public class Controller2 {
 
         Point blue = grabFrameRobotPoint(new Scalar(100,150,0), new Scalar(140,255,255));
         Point blueProjected = projectPoint(camHeight,objectHeightRobotBlue,centerpoint, blue);
-        Point green = grabFrameRobotPoint(new Scalar(40, 70, 0 ), new Scalar(75, 255, 255));
+        Point green = grabFrameRobotPoint(new Scalar(40, 40, 0 ), new Scalar(75, 255, 255));
         Point greenProjected = projectPoint(camHeight,objectHeightRobotGreen,centerpoint, green);
 
         /*System.out.println(blue.toString() + " almindelig blå");
