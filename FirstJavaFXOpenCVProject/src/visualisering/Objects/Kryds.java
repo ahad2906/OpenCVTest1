@@ -71,6 +71,7 @@ public class Kryds extends SpaceObject implements IDrawable {
     }
 
     public boolean intersects(Vector2D a, Vector2D b){
+        //TODO: skal laves om
         float cross_a1 = Vector2D.CrossProduct(a, corners[0].subtract(corners[5]));
         float cross_b1 = Vector2D.CrossProduct(b, corners[0].subtract(corners[5]));
         float cross_a2 = Vector2D.CrossProduct(a, corners[11].subtract(corners[6]));

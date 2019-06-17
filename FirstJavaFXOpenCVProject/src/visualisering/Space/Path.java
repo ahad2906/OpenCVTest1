@@ -46,7 +46,7 @@ public class Path implements IDrawable {
                 pos = path.get(0), attackPoint = null;
         path.add(target);
 
-        float OFFSET = grid.translateLengthToScale(35);
+        float d = grid.translateLengthToScale(60);
 
         /*if (cross.isInside(target)){
             isCloseEdge = true;
@@ -56,46 +56,31 @@ public class Path implements IDrawable {
         else*/ if (target.getX() < grid.CELL_SPACING.getX()){
             isCloseEdge = true;
             if (target.getY() < grid.CELL_SPACING.getY()){
-                attackPoint = new Vector2D(
-                        grid.CELL_SPACING.getX()+OFFSET,
-                        grid.CELL_SPACING.getY()+OFFSET
-                );
+                attackPoint = Vector2D.RIGHT.scale(5).add(Vector2D.DOWN);
             }
             else if (target.getY() > grid.CELL_SPACING.getY()*(Grid.CELLS_VER -1)){
-                attackPoint = new Vector2D(
-                        grid.CELL_SPACING.getX()+OFFSET,
-                        grid.CELL_SPACING.getY()*(Grid.CELLS_VER -1)-OFFSET
-                );
+                attackPoint = Vector2D.RIGHT.scale(5).add(Vector2D.UP);
             }
             else {
-                attackPoint = new Vector2D(
-                        grid.CELL_SPACING.getX()+OFFSET,
-                        target.getY()
-                );
+                attackPoint = Vector2D.RIGHT;
             }
+
+            attackPoint.scale(d).add(target);
         } else if (target.getX() > grid.CELL_SPACING.getX()*(Grid.CELLS_HOR -1)){
             isCloseEdge = true;
-            if (target.getY() < grid.CELL_SPACING.getY()){
-                attackPoint = new Vector2D(
-                        grid.CELL_SPACING.getX()*(Grid.CELLS_HOR -1)-OFFSET,
-                        grid.CELL_SPACING.getY()+OFFSET
-                );
+            if (target.getY() < grid.CELL_SPACING.getY()) {
+                attackPoint = Vector2D.LEFT.scale(5).add(Vector2D.DOWN);
             }
             else if (target.getY() > grid.CELL_SPACING.getY()*(Grid.CELLS_VER -1)){
-                attackPoint = new Vector2D(
-                        grid.CELL_SPACING.getX()*(Grid.CELLS_HOR -1)-OFFSET,
-                        grid.CELL_SPACING.getY()*(Grid.CELLS_VER -1)-OFFSET
-                );
+                attackPoint = Vector2D.LEFT.scale(5).add(Vector2D.UP);
             }
             else {
-                attackPoint = new Vector2D(
-                        grid.CELL_SPACING.getX()*(Grid.CELLS_HOR -1)-OFFSET,
-                        target.getY()
-                );
+                attackPoint = Vector2D.LEFT;
             }
+
+            attackPoint.scale(d).add(target);
         }
         else {
-            float d = grid.translateLengthToScale(60);
             float D = Vector2D.Distance(pos, target);
             float x1 = pos.getX(), x2 = target.getX(), y1 = pos.getY(), y2 = target.getY();
             attackPoint = new Vector2D(
@@ -130,10 +115,6 @@ public class Path implements IDrawable {
         }
 
         return lenght;
-    }
-
-    public void smoothPath(){
-        //TODO: algorithm to smooth out the path, make it more direct from the robot to the goal
     }
 
     public Vector2D getLast(){
