@@ -3,6 +3,7 @@ package visualisering.Space;
 import com.sun.istack.internal.NotNull;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import org.omg.PortableInterceptor.DISCARDING;
 import visualisering.Objects.Kryds;
 import visualisering.Objects.Mål;
 import visualisering.Objects.SpaceObject;
@@ -183,6 +184,20 @@ public class Path implements IDrawable {
 
                 path.add(1, attackPoint);
                 path.add(1, midtpunkt);
+            }
+            else {
+                path.add(1, slutpunkt);
+                if (!isCloseEdge && !inCorner){
+                    float D = Vector2D.Distance(slutpunkt, target);
+                    float x1 = slutpunkt.getX(), x2 = target.getX(), y1 = slutpunkt.getY(), y2 = target.getY();
+                    attackPoint = new Vector2D(
+                            x2-(d/D)*(x2-x1),
+                            y2-(d/D)*(y2-y1)
+                    );
+                }
+                path.add(1, attackPoint);
+                if (Vector2D.Distance(pos, startpunkt) > 5)
+                    path.add(1, startpunkt);
             }
 
             //Tilføjer vores startpunkt
