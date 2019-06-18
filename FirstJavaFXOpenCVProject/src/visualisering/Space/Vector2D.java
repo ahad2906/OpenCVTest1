@@ -7,14 +7,24 @@ package visualisering.Space;
  */
 public class Vector2D {
 
-
-    public static final Vector2D
-            DOWN = new Vector2D(0,1),
-            UP = new Vector2D(0, -1),
-            LEFT = new Vector2D(-1, 0),
-            RIGHT = new Vector2D(1, 0),
-            ONE = new Vector2D(1,1),
-            ZERO = new Vector2D(0,0);
+    public static Vector2D DOWN(){
+        return new Vector2D(0,1);
+    }
+    public static Vector2D UP(){
+        return new Vector2D(0,-1);
+    }
+    public static Vector2D LEFT(){
+        return new Vector2D(-1,0);
+    }
+    public static Vector2D RIGHT(){
+        return new Vector2D(1,0);
+    }
+    public static Vector2D ONE(){
+        return new Vector2D(1,1);
+    }
+    public static Vector2D ZERO(){
+        return new Vector2D(0,0);
+    }
 
     private float x, y;
 
@@ -60,11 +70,11 @@ public class Vector2D {
         Vector2D v;
         int d;
         if (b.getY() < a.getY()){
-            v = Vector2D.LEFT;
+            v = LEFT();
             d = 0;
         }
         else {
-            v = Vector2D.RIGHT;
+            v = RIGHT();
             d = 180;
         }
 

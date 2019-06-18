@@ -19,7 +19,7 @@ public class RobotController {
     private Thread t;
     private boolean isTargeting, motorsStarted;
     private ScheduledExecutorService schedule;
-    private final float MIN_DIST = 5f, OFFSET = 4f, BACK_DIST = 10f;
+    private final float MIN_DIST = 5f, OFFSET = 0.9f, BACK_DIST = 20f, MIN_ANGLE = 5f;
 
     public RobotController(Grid grid){
         this.grid = grid;
@@ -47,28 +47,68 @@ public class RobotController {
                 while (path.size() >= 2){
                     robot.setTarget(path.getNext());
 
+                    System.out.println("Target is at "+robot.getTarget());
 
                     //Beregner vinklen til target
                     float angle = robot.getAngleToTarget();
-                    //Drejer mod target
-                    robotSocket.turn(angle);
 
                     //Beregner afstanden til target
-                    float dist = (grid.translateLengthToMilimeters(robot.getDistToTarget()) -
-                            grid.translateLengthToMilimeters(robot.getHeight())/2) / 10;
+                    float dist = grid.translateLengthToMilimeters(robot.getDistToTarget()) / 10;
+
+                    //Drejer mod target
+                    if (path.isCloseEdge()) {
+                        int i = 0;
+                        while (i < 2 && angleCheck(Math.abs(angle), Math.abs(dist))) {
+                            robotSocket.turn(angle);
+                            angle = robot.getAngleToTarget();
+                            i++;
+                        }
+                    }
+                    else {
+                        robotSocket.turn(angle);
+                    }
+
                     //Hvis path'en er lavere end 2, er det en bold og derfor køres der langsomt
                     if (path.size() < 2){
-                        robotSocket.driveSlowForward(dist);
+                        //Hvis det drejer sig om et hjørne skal der bare køres fuld smader
+                        if (path.isInCorner()){
+                            robotSocket.driveForward(dist);
+                        }
+                        else {
+                            robotSocket.driveSlowForward(dist
+                                    - grid.translateLengthToMilimeters(robot.getHeight()) / 21);
+                        }
                     }
                     //Ellers køres der alm hastighed mod target
                     else {
-                        robotSocket.driveForward(dist);
+                        robotSocket.driveForward(dist*OFFSET
+                                - grid.translateLengthToMilimeters(robot.getHeight()) / 20 );
+
+                        //Tjekker om den har kørt langt nok, hvis ikke, så tilføjes punktet på igen
+                        if (path.isCloseEdge()) {
+                            dist = (grid.translateLengthToMilimeters(robot.getDistToTarget()) -
+                                    grid.translateLengthToMilimeters(robot.getHeight()) / 1.9f) / 10;
+                            if (dist > 1) {
+                                path.add(robot.getTarget());
+                            }
+                        }
                     }
                 }
 
                 //Hvis robotten har lavet en manøvre tæt på banderet bakker den
                 if (path.isCloseEdge()){
-                    robotSocket.driveBackward(BACK_DIST);
+                    //Bak hurtigt ud hvis man var i et hjørne
+                    if (path.isInCorner()){
+                        if (path.getB_dir() == 1){
+                            robotSocket.backLeft();
+                        }
+                        else {
+                            robotSocket.backRight();
+                        }
+                    }
+                    //Ellers bak langsomt ud
+                    else
+                        robotSocket.driveForward(-BACK_DIST);
                 }
 
                 isTargeting = false;
@@ -77,6 +117,10 @@ public class RobotController {
                 e.printStackTrace();
             }
         }
+    }
+
+    private boolean angleCheck(float angle, float dist){
+        return (dist < MIN_DIST && angle > MIN_ANGLE) || angle > 1;
     }
 
     public void setRobot(Robot robot){

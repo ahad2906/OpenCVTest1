@@ -19,7 +19,7 @@ import java.util.List;
 public class Grid implements IDrawable {
     public final float WIDTH, HEIGHT, UNIT_SCALE;
     public static final float CELLS_HOR = 9f, CELLS_VER = 7f, GOAL_LEFT = 90f,
-            GOAL_RIGHT = 160, UNIT_WIDTH = 1675, UNIT_HEIGHT = 1210, OFFSET = .82f;
+            GOAL_RIGHT = 160, UNIT_WIDTH = 1675, UNIT_HEIGHT = 1210, OFFSET = 1f;
     private float a, b, c, d, e, f, g, h;
     public final Vector2D CELL_SPACING;
     Color color;
@@ -88,19 +88,21 @@ public class Grid implements IDrawable {
                 X1 = 0, Y1 = 0, X2 = WIDTH, Y2 = 0,
                 X3 = WIDTH, Y3 = HEIGHT, X4 = 0, Y4 = HEIGHT;
 
-        double M_a[][] = { { x1, y1, 1, 0, 0, 0, -x1 * X1, -y1 * X1 },
+        Matrix A = new Matrix(new double[][]{
+                { x1, y1, 1, 0, 0, 0, -x1 * X1, -y1 * X1 },
                 { x2, y2, 1, 0, 0, 0, -x2 * X2, -y2 * X2 },
                 { x3, y3, 1, 0, 0, 0, -x3 * X3, -y3 * X3 },
                 { x4, y4, 1, 0, 0, 0, -x4 * X4, -y4 * X4 },
                 { 0, 0, 0, x1, y1, 1, -x1 * Y1, -y1 * Y1 },
                 { 0, 0, 0, x2, y2, 1, -x2 * Y2, -y2 * Y2 },
                 { 0, 0, 0, x3, y3, 1, -x3 * Y3, -y3 * Y3 },
-                { 0, 0, 0, x4, y4, 1, -x4 * Y4, -y4 * Y4 } };
+                { 0, 0, 0, x4, y4, 1, -x4 * Y4, -y4 * Y4 }
+        });
 
-        double M_b[][] = { { X1 }, { X2 }, { X3 }, { X4 }, { Y1 }, { Y2 },
-                { Y3 }, { Y4 } };
-        Matrix A = new Matrix(M_a);
-        Matrix B = new Matrix(M_b);
+        Matrix B = new Matrix(new double[][] {
+                { X1 }, { X2 }, { X3 }, { X4 },
+                { Y1 }, { Y2 }, { Y3 }, { Y4 }
+        });
 
         Matrix C = A.solve(B);
         a = (float)C.get(0,0);

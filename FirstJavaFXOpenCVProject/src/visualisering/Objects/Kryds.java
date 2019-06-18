@@ -54,40 +54,17 @@ public class Kryds extends SpaceObject implements IDrawable {
         setPos(position);
         setRotation(rotation);
 
-        /*//Beregner angrebspunkterne
-        float D = Vector2D.Distance(vA[1], vA[0]);
-        float x1 = vA[1].getX(), x2 = vA[0].getX(), y1 = vA[1].getY(), y2 = vA[0].getY();
-        Vector2D bottom = new Vector2D(
-                x1+(attack_d/D)*(x2-x1),
-                y1+(attack_d/D)*(y2-y1)
-        );
+        //Beregner angræbspunkter
 
 
-        //Sætter angrebspunkterne
-        attackPoints = {
-                new Vector2D()
-
-        };*/
-    }
-
-    public boolean intersects(Vector2D a, Vector2D b){
-        //TODO: skal laves om
-        float cross_a1 = Vector2D.CrossProduct(a, corners[0].subtract(corners[5]));
-        float cross_b1 = Vector2D.CrossProduct(b, corners[0].subtract(corners[5]));
-        float cross_a2 = Vector2D.CrossProduct(a, corners[11].subtract(corners[6]));
-        float cross_b2 = Vector2D.CrossProduct(b, corners[11].subtract(corners[6]));
-        float cross_a3 = Vector2D.CrossProduct(a, corners[9].subtract(corners[2]));
-        float cross_b3 = Vector2D.CrossProduct(b, corners[9].subtract(corners[2]));
-        float cross_a4 = Vector2D.CrossProduct(a, corners[8].subtract(corners[3]));
-        float cross_b4 = Vector2D.CrossProduct(b, corners[8].subtract(corners[3]));
-
-
-        return ((cross_a1 < 0) != (cross_b1 < 0)) || ((cross_a2 < 0) != (cross_b2 < 0))
-                || ((cross_a3 < 0) != (cross_b3 < 0)) || ((cross_a4 < 0) != (cross_b4 < 0));
     }
 
     public boolean isInside(Vector2D v){
         return Vector2D.Distance(position, v) <= width/2;
+    }
+
+    public Vector2D[] getAttackPoints(Vector2D v){
+        return null;
     }
 
 
