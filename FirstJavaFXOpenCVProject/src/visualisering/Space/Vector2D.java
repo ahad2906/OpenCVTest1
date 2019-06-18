@@ -3,7 +3,7 @@ package visualisering.Space;
 /**
  * A class that represents vectors in 2D space and can handle different vector calculations.
  * @author DFallingHammer
- * @version 1.1.0
+ * @version 1.1.2
  */
 public class Vector2D {
 
@@ -235,6 +235,19 @@ public class Vector2D {
             y = min.getY();
         else if (y > max.getY())
             y = max.getY();
+
+        return this;
+    }
+
+    /**
+     * Sets the vector to it's unit vector
+     * @return Vector2D unit
+     */
+    public Vector2D toUnit(){
+        float m = getMagnitude();
+
+        x /= m;
+        y /= m;
 
         return this;
     }

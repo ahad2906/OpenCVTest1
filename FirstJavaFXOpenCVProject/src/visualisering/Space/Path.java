@@ -59,7 +59,7 @@ public class Path implements IDrawable {
                 correction = new Vector2D(0,5),
                 cross_pos = cross.getPos();
 
-        float d = grid.translateLengthToScale(60), space = grid.translateLengthToScale(80);
+        float d = grid.translateLengthToScale(120), space = grid.translateLengthToScale(80);
         int scale = 10, v_scale = 5;
 
         /*if (cross.isInside(target)){
@@ -98,7 +98,7 @@ public class Path implements IDrawable {
                 inCorner = true;
                 b_dir = 1;
             } else {
-                attackPoint = Vector2D.LEFT().scale(3);
+                attackPoint = Vector2D.LEFT().scale(v_scale);
             }
 
             attackPoint.scale(d).add(target);
@@ -155,7 +155,7 @@ public class Path implements IDrawable {
                     y1 + (b/a)*(y2-y1)
             );
 
-            detour.subtract(cross_pos).scale(s);
+            detour.subtract(cross_pos).toUnit().scale(s);
             path.add(1, detour);
 
             //Alternativ
