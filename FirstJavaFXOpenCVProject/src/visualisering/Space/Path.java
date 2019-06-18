@@ -58,7 +58,7 @@ public class Path implements IDrawable {
                 cross_pos = cross.getPos();
 
         float d = grid.translateLengthToScale(60), space = grid.translateLengthToScale(80);
-        int scale = 10, v_scale = 2;
+        int scale = 10, v_scale = 5;
 
         /*if (cross.isInside(target)){
             isCloseEdge = true;
@@ -125,7 +125,7 @@ public class Path implements IDrawable {
         System.out.println("Path, target is at: "+target+" and attackpoint at: "+attackPoint);
         System.out.println("Path, isClosesEdge = "+isCloseEdge);
 
-        path.add(1, attackPoint);
+        //path.add(1, attackPoint);
 
         if (goesThroughCross(pos, attackPoint, cross_pos)){
             System.out.println("Path goes through cross");
@@ -159,7 +159,7 @@ public class Path implements IDrawable {
             }
 
             //Tilføjer vores slutpunkt
-            path.add(1, slutpunkt);
+            //path.add(1, slutpunkt);
 
             //Tjekker om vi mangler et midtpunkt og tilføjer dette hvis det er tilfældet
             if (grid.translateLengthToMilimeters(Vector2D.Distance(startpunkt, slutpunkt)) > s*1.5f){
@@ -171,11 +171,22 @@ public class Path implements IDrawable {
                     }
                 }
 
+                //Berenger nyt angrebspunkt hvis
+                if (!isCloseEdge && !inCorner){
+                    float D = Vector2D.Distance(midtpunkt, target);
+                    float x1 = midtpunkt.getX(), x2 = target.getX(), y1 = midtpunkt.getY(), y2 = target.getY();
+                    attackPoint = new Vector2D(
+                            x2-(d/D)*(x2-x1),
+                            y2-(d/D)*(y2-y1)
+                    );
+                }
+
+                path.add(1, attackPoint);
                 path.add(1, midtpunkt);
             }
 
             //Tilføjer vores startpunkt
-            path.add(1, startpunkt);
+            //path.add(1, startpunkt);
 
         }
 

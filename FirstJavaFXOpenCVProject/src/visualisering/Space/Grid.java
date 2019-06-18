@@ -22,6 +22,7 @@ public class Grid implements IDrawable {
             GOAL_RIGHT = 160, UNIT_WIDTH = 1675, UNIT_HEIGHT = 1210, OFFSET = 1f;
     private float a, b, c, d, e, f, g, h;
     public final Vector2D CELL_SPACING;
+    Vector2D scale, offset;
     Color color;
 
     public Grid(float width, float height){
@@ -81,38 +82,15 @@ public class Grid implements IDrawable {
                     "Width: "+WIDTH+" Height: "+HEIGHT);
 
 
-        float x1 = topLeft.getX(), y1 = topLeft.getY(),
-                x2 = topRight.getX(), y2 = topRight.getY(),
-                x3 = bottomRight.getX(), y3 = bottomRight.getY(),
-                x4 = bottomLeft.getX(), y4 = bottomLeft.getY(),
-                X1 = 0, Y1 = 0, X2 = WIDTH, Y2 = 0,
-                X3 = WIDTH, Y3 = HEIGHT, X4 = 0, Y4 = HEIGHT;
+        float w, h;
+        w = (topRight.getX() + bottomRight.getX() - (topLeft.getX() + bottomLeft.getX()))/2f;
+        h = (bottomRight.getY() + bottomLeft.getY() - (topLeft.getY() + topRight.getY()))/2f;
 
-        Matrix A = new Matrix(new double[][]{
-                { x1, y1, 1, 0, 0, 0, -x1 * X1, -y1 * X1 },
-                { x2, y2, 1, 0, 0, 0, -x2 * X2, -y2 * X2 },
-                { x3, y3, 1, 0, 0, 0, -x3 * X3, -y3 * X3 },
-                { x4, y4, 1, 0, 0, 0, -x4 * X4, -y4 * X4 },
-                { 0, 0, 0, x1, y1, 1, -x1 * Y1, -y1 * Y1 },
-                { 0, 0, 0, x2, y2, 1, -x2 * Y2, -y2 * Y2 },
-                { 0, 0, 0, x3, y3, 1, -x3 * Y3, -y3 * Y3 },
-                { 0, 0, 0, x4, y4, 1, -x4 * Y4, -y4 * Y4 }
-        });
-
-        Matrix B = new Matrix(new double[][] {
-                { X1 }, { X2 }, { X3 }, { X4 },
-                { Y1 }, { Y2 }, { Y3 }, { Y4 }
-        });
-
-        Matrix C = A.solve(B);
-        a = (float)C.get(0,0);
-        b = (float)C.get(1,0);
-        c = (float)C.get(2,0);
-        d = (float)C.get(3,0);
-        e = (float)C.get(4,0);
-        f = (float)C.get(5,0);
-        g = (float)C.get(6,0);
-        h = (float)C.get(7,0);
+        scale = new Vector2D(WIDTH/w, HEIGHT/h);
+        offset = new Vector2D(
+                (topLeft.getX() + bottomLeft.getX())/2f,
+                (topRight.getY() + topLeft.getY())/2f
+        );
 
     }
 
@@ -122,14 +100,11 @@ public class Grid implements IDrawable {
      * @return Vector2D translated coordinate
      */
     public Vector2D translatePos(Vector2D pos){
-        float x = pos.getX(), y = pos.getY();
-        /*pos = Vector2D.CopyOf(pos)
+        pos = Vector2D.CopyOf(pos)
                 .subtract(offset) //Offset the point
                 .scale(scale); //Scale to actual grid size
-        */
-        return new Vector2D(
-                (a*x+b*y+c)/(g*x+h*y+1),
-                (d*x+e*y+f)/(g*x+h*y+1));
+        //.clamp(new Vector2D(0,0), new Vector2D(WIDTH, HEIGHT)); //Clamp inside grid bounds
+        return pos;
     }
 
     public Vector2D[] translatePositions(Vector2D[] positions){
