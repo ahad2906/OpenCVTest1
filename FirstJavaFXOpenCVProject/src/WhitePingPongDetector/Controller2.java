@@ -300,13 +300,16 @@ public class Controller2 {
                     // Dilate = elementer af størrelse (x*x)pixel (gør objekt større)
                     // Erode  = elementer af størrelse (x*x)pixel (gør objekt mindre)
                     Mat morhpOutput = new Mat();
-                    Mat dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(2, 2));
+                    Mat dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(4, 4));
                     Mat erodeElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(4, 4));
 
                     // Forstørre elementet x gange
                     Imgproc.dilate(hueStart, morhpOutput, dilateElement); // 1. gang
+                    Imgproc.erode(morhpOutput, morhpOutput, erodeElement); // 2. gang
                     Imgproc.dilate(morhpOutput, morhpOutput, dilateElement); // 2. gang
                     Imgproc.dilate(morhpOutput, morhpOutput, dilateElement); // 2. gang
+                    Imgproc.erode(morhpOutput, morhpOutput, erodeElement); // 2. gang
+
 
                     // Tegner streger/kanter af elementer i framet
                     Mat cannyOutput = new Mat();

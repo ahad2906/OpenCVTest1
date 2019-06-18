@@ -127,7 +127,7 @@ public class Path implements IDrawable {
 
         path.add(1, attackPoint);
 
-        if (goesThroughCross(pos, target, cross_pos)){
+        if (goesThroughCross(pos, attackPoint, cross_pos)){
             System.out.println("Path goes through cross");
             float s = grid.translateLengthToScale(400);
             Vector2D[] points = {
@@ -152,8 +152,8 @@ public class Path implements IDrawable {
             Vector2D slutpunkt = null;
             dist = Float.MAX_VALUE;
             for (Vector2D v : points){
-                if (Vector2D.Distance(target, v) < dist){
-                    dist = Vector2D.Distance(target, v);
+                if (Vector2D.Distance(attackPoint, v) < dist){
+                    dist = Vector2D.Distance(attackPoint, v);
                     slutpunkt = v;
                 }
             }
@@ -191,11 +191,11 @@ public class Path implements IDrawable {
 
         s = (a+b+c)/2;
         A = (float)Math.sqrt(s*(s-a)*(s-b)*(s-c));
-        h = A/(.5f*b);
+        h = 2*A/c;
 
         System.out.println("Path, h-val: "+h);
 
-        return h < 35;
+        return h < 65;
     }
 
     public float getLength(){

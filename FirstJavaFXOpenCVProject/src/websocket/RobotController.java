@@ -19,7 +19,7 @@ public class RobotController {
     private Thread t;
     private boolean isTargeting, motorsStarted;
     private ScheduledExecutorService schedule;
-    private final float MIN_DIST = 5f, OFFSET = 0.9f, BACK_DIST = 20f, MIN_ANGLE = 5f;
+    private final float MIN_DIST = 5f, OFFSET = 0.85f, BACK_DIST = 20f, MIN_ANGLE = 5f;
 
     public RobotController(Grid grid){
         this.grid = grid;
@@ -81,8 +81,7 @@ public class RobotController {
                     }
                     //Ellers køres der alm hastighed mod target
                     else {
-                        robotSocket.driveForward(dist*OFFSET
-                                - grid.translateLengthToMilimeters(robot.getHeight()) / 20 );
+                        robotSocket.driveForward(dist*OFFSET);
 
                         //Tjekker om den har kørt langt nok, hvis ikke, så tilføjes punktet på igen
                         if (path.isCloseEdge()) {
