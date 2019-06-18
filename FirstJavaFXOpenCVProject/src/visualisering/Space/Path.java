@@ -4,6 +4,7 @@ import com.sun.istack.internal.NotNull;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import org.omg.PortableInterceptor.DISCARDING;
+import org.opencv.core.Mat;
 import visualisering.Objects.Kryds;
 import visualisering.Objects.Mål;
 import visualisering.Objects.SpaceObject;
@@ -126,83 +127,42 @@ public class Path implements IDrawable {
         System.out.println("Path, target is at: "+target+" and attackpoint at: "+attackPoint);
         System.out.println("Path, isClosesEdge = "+isCloseEdge);
 
-        //path.add(1, attackPoint);
+        path.add(1, attackPoint);
 
-        if (goesThroughCross(pos, attackPoint, cross_pos)){
+        //Tjekker om stien krydset krydset
+        float a, b, c, s, A, h;
+        a = Vector2D.Distance(pos, cross_pos);
+        b = Vector2D.Distance(cross_pos, attackPoint);
+        c = Vector2D.Distance(pos, attackPoint);
+
+        s = (a+b+c)/2;
+        A = (float)Math.sqrt(s*(s-a)*(s-b)*(s-c));
+        h = 2*A/c;
+
+        System.out.println("Path, h-val: "+h);
+
+        if (h < grid.translateLengthToScale(350)){
             System.out.println("Path goes through cross");
-            float s = grid.translateLengthToScale(400);
-            Vector2D[] points = {
-                    Vector2D.UP().scale(s).add(cross_pos),
-                    Vector2D.RIGHT().scale(s).add(cross_pos),
-                    Vector2D.DOWN().scale(s).add(cross_pos),
-                    Vector2D.LEFT().scale(s).add(cross_pos)
-            };
+            float B;
+            A = (float)Math.asin((Math.sin(Math.toRadians(90))*h)/a);
+            B = (float)Math.toRadians(90)-A;
+            b = (float)((Math.sin(B)*a)/Math.sin(A));
+            s = grid.translateLengthToScale(400);
 
+            float x1 = pos.getX(), x2 = attackPoint.getX(), y1 = pos.getY(), y2 = attackPoint.getY();
+            Vector2D detour = new Vector2D(
+                    x1 + (b/a)*(x2-x1),
+                    y1 + (b/a)*(y2-y1)
+            );
 
-            //Vælger startpunkt (det der er tættest på roboten)
-            Vector2D startpunkt = null;
-            float dist = Float.MAX_VALUE;
-            for (Vector2D v : points){
-                if (Vector2D.Distance(pos, v) < dist){
-                    dist = Vector2D.Distance(pos, v);
-                    startpunkt = v;
-                }
-            }
+            detour.subtract(cross_pos).scale(s);
+            path.add(1, detour);
 
-            //Vælger slutpunkt (det der er tættest på target
-            Vector2D slutpunkt = null;
-            dist = Float.MAX_VALUE;
-            for (Vector2D v : points){
-                if (Vector2D.Distance(attackPoint, v) < dist){
-                    dist = Vector2D.Distance(attackPoint, v);
-                    slutpunkt = v;
-                }
-            }
+            //Alternativ
+            /*float s = grid.translateLengthToScale(400);
+            Vector2D middle = Vector2D.Middle(pos, attackPoint).subtract(cross_pos).scale(s);
 
-            //Tilføjer vores slutpunkt
-            //path.add(1, slutpunkt);
-
-            //Tjekker om vi mangler et midtpunkt og tilføjer dette hvis det er tilfældet
-            if (grid.translateLengthToMilimeters(Vector2D.Distance(startpunkt, slutpunkt)) > s*1.5f){
-                Vector2D midtpunkt = null;
-                for (Vector2D v : points){
-                    if (v.getY() != startpunkt.getY() && v.getY() != slutpunkt.getY()){
-                        midtpunkt = v;
-                        break;
-                    }
-                }
-
-                //Berenger nyt angrebspunkt hvis
-                if (!isCloseEdge && !inCorner){
-                    float D = Vector2D.Distance(midtpunkt, target);
-                    float x1 = midtpunkt.getX(), x2 = target.getX(), y1 = midtpunkt.getY(), y2 = target.getY();
-                    attackPoint = new Vector2D(
-                            x2-(d/D)*(x2-x1),
-                            y2-(d/D)*(y2-y1)
-                    );
-                }
-
-                path.add(1, attackPoint);
-                path.add(1, midtpunkt);
-            }
-            else {
-                path.add(1, slutpunkt);
-                if (!isCloseEdge && !inCorner){
-                    float D = Vector2D.Distance(slutpunkt, target);
-                    float x1 = slutpunkt.getX(), x2 = target.getX(), y1 = slutpunkt.getY(), y2 = target.getY();
-                    attackPoint = new Vector2D(
-                            x2-(d/D)*(x2-x1),
-                            y2-(d/D)*(y2-y1)
-                    );
-                }
-                path.add(1, attackPoint);
-                if (Vector2D.Distance(pos, startpunkt) > 5)
-                    path.add(1, startpunkt);
-            }
-
-            //Tilføjer vores startpunkt
-            //path.add(1, startpunkt);
-
+            path.add(1, middle);*/
         }
 
         drawpath = new LinkedList<>(path);

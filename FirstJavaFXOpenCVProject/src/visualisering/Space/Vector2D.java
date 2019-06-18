@@ -104,8 +104,7 @@ public class Vector2D {
      * @return
      */
     public static float Distance(Vector2D a, Vector2D b){
-        return (float) Math.abs(Math.sqrt(Math.pow(a.x - b.x,2)+Math.pow(a.y - b.y,2)));
-        //return CopyOf(a).subtract(b).getMagnitude();
+        return CopyOf(a).subtract(b).getMagnitude();
     }
 
     /**
