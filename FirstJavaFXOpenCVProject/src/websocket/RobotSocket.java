@@ -25,7 +25,7 @@ public class RobotSocket {
     public void start() throws IOException {
         while (true){
             try {
-                clientSocket = new Socket("192.168.137.181", 6789);
+                clientSocket = new Socket("192.168.137.153", 6789);
                 outToServer = new DataOutputStream(clientSocket.getOutputStream());
                 inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 break;

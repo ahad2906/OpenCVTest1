@@ -121,7 +121,7 @@ public class Grid implements IDrawable {
      * @return float length in millimeters
      */
     public float translateLengthToMilimeters(float length){
-        return length/UNIT_SCALE*OFFSET;
+        return length/UNIT_SCALE;
     }
 
     /**
@@ -130,7 +130,7 @@ public class Grid implements IDrawable {
      * @return float scaled length
      */
     public float translateLengthToScale(float length){
-        return length*UNIT_SCALE*(2-OFFSET);
+        return length*UNIT_SCALE;
     }
 
     @Override

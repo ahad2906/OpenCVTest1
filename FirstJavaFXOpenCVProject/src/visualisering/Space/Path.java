@@ -141,26 +141,50 @@ public class Path implements IDrawable {
 
         System.out.println("Path, h-val: "+h);
 
-        if (h < grid.translateLengthToScale(350)){
+        if (h < grid.translateLengthToScale(180)){
             System.out.println("Path goes through cross");
             float B;
             A = (float)Math.asin((Math.sin(Math.toRadians(90))*h)/a);
-            B = (float)Math.toRadians(90)-A;
-            b = (float)((Math.sin(B)*a)/Math.sin(A));
-            s = grid.translateLengthToScale(400);
+            b = (float)Math.cos(A)*a;
+            s = grid.translateLengthToScale(220);
+
+            System.out.println("Path, a:"+a+" A: "+A+" b "+b+" s "+s+ " c: "+c);
 
             float x1 = pos.getX(), x2 = attackPoint.getX(), y1 = pos.getY(), y2 = attackPoint.getY();
             Vector2D detour = new Vector2D(
-                    x1 + (b/a)*(x2-x1),
-                    y1 + (b/a)*(y2-y1)
+                    x1 + (b/c)*(x2-x1),
+                    y1 + (b/c)*(y2-y1)
             );
 
-            detour.subtract(cross_pos).toUnit().scale(s);
+            System.out.println("Path, detour "+detour);
+
+            detour.subtract(cross_pos).toUnit();
+
+            System.out.println("Path, detour unit "+detour+" path dir unit "
+                    +Vector2D.CopyOf(attackPoint).subtract(pos).toUnit());
+
+            detour.scale(s).add(cross_pos);
+
+            System.out.println("Path detour scaled "+detour);
             path.add(1, detour);
 
-            //Alternativ
-            /*float s = grid.translateLengthToScale(400);
-            Vector2D middle = Vector2D.Middle(pos, attackPoint).subtract(cross_pos).scale(s);
+            /*//Alternativ
+            s = grid.translateLengthToScale(400);
+            Vector2D middle = Vector2D.Middle(pos, attackPoint).subtract(cross_pos);
+
+            System.out.println("Path, detour "+middle);
+
+            middle.toUnit();
+
+            System.out.println("Path, detour "+middle);
+
+            middle.scale(s);
+            System.out.println("Path, detour "+middle);
+
+            System.out.println("Path, cross "+cross);
+
+            middle.add(cross_pos);
+            System.out.println("Path, detour "+middle);
 
             path.add(1, middle);*/
         }
