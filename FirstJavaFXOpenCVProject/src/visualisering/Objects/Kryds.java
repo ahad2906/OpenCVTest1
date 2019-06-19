@@ -1,5 +1,6 @@
 package visualisering.Objects;
 
+import javafx.collections.transformation.SortedList;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import visualisering.Space.Vector2D;
@@ -10,16 +11,17 @@ import java.util.Arrays;
 public class Kryds extends SpaceObject implements IDrawable {
     private Color color;
     private Vector2D[] corners;
-    private Vector2D[] attackPoints;
 
     public void setPoints(Vector2D[] vA, float attack_d, float max_width){
-        if (Vector2D.Distance(vA[0], vA[11]) > Vector2D.Distance(vA[11], vA[10])){
-            Vector2D[] newVa = Arrays.copyOf(vA, vA.length);
-            newVa[0] = vA[11];
-            for (int i = 1; i < vA.length; i++){
-                newVa[i] = vA[i-1];
+        for (int j = 0; j < 2; j++) {
+            if (!(Vector2D.Distance(vA[0], vA[1]) > Vector2D.Distance(vA[1], vA[4]))) {
+                Vector2D[] newVa = Arrays.copyOf(vA, vA.length);
+                newVa[0] = vA[11];
+                for (int i = 1; i < vA.length; i++) {
+                    newVa[i] = vA[i - 1];
+                }
+                vA = newVa;
             }
-            vA = newVa;
         }
 
         //Finder de to horizontale punkter
@@ -34,9 +36,6 @@ public class Kryds extends SpaceObject implements IDrawable {
                 Vector2D.Middle(vA[0],vA[11])
         };
 
-        //Sætter hjørnerne
-        corners = vA;
-
         //Finder midten
         Vector2D position = Vector2D.Middle(hor[0], hor[1]);
         //Finder vinklen
@@ -48,14 +47,14 @@ public class Kryds extends SpaceObject implements IDrawable {
         if (width > max_width)
             return;
 
+        //Sætter hjørnerne
+        corners = vA;
+
         //Sætter parameterne
         setWidth(width);
         setHeight(height);
         setPos(position);
         setRotation(rotation);
-
-        //Beregner angræbspunkter
-
 
     }
 
@@ -63,8 +62,34 @@ public class Kryds extends SpaceObject implements IDrawable {
         return Vector2D.Distance(position, v) <= width/2;
     }
 
-    public Vector2D[] getAttackPoints(Vector2D v){
-        return null;
+    public Vector2D[] getAttackPoint(Vector2D target){
+        Vector2D[] vA = {
+                Vector2D.CopyOf(corners[11]).subtract(corners[0]),
+                Vector2D.CopyOf(corners[2]).subtract(corners[3]),
+                Vector2D.CopyOf(corners[5]).subtract(corners[6]),
+                Vector2D.CopyOf(corners[8]).subtract(corners[9]),
+                Vector2D.CopyOf(corners[11]),
+                Vector2D.CopyOf(corners[2]),
+                Vector2D.CopyOf(corners[5]),
+                Vector2D.CopyOf(corners[8])
+        };
+
+        Vector2D[] attackpoints = new Vector2D[2];
+        float dist = Float.MAX_VALUE;
+        for (int i = 0; i < 4; i++) {
+            float d = Vector2D.Distance(Vector2D.CopyOf(vA[i]).add(position),
+                    Vector2D.CopyOf(target).subtract(position));
+
+            if (d < dist){
+                dist = d;
+                attackpoints[0] = vA[i];
+                attackpoints[1] = vA[i+4];
+            }
+        }
+
+        attackpoints[0].toUnit();
+
+        return attackpoints;
     }
 
 

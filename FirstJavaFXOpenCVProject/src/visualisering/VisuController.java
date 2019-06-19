@@ -28,6 +28,8 @@ public class VisuController {
     private boolean started = false;
     private AnimationTimer timer;
 
+    private int tries;
+
     public VisuController(Controller2 other){
         otherController = other;
     }
@@ -136,8 +138,19 @@ public class VisuController {
         path.setColor(Colors.PATH);
 
         Bold ball = null;
+        Set<Bold> balls = map.getBalls();
+
+        if (balls == null || balls.size() <= 0){
+            tries++;
+            if (tries > 9){
+                path.setTarget(map.getLeftgoal());
+            }
+            return;
+        }
+
+        tries = 0;
         float min = Float.MAX_VALUE;
-        for (Bold b : map.getBalls()){
+        for (Bold b : balls){
             float dist = Vector2D.Distance(b.getPos(), path.getLast());
             if (dist < min){
                 min = dist;
@@ -170,21 +183,19 @@ public class VisuController {
         map.setNodes(nodes);*/
 
         //Goals
-        Set<Mål> goals = new HashSet<>();
         Mål goal = new Mål();
         goal.setPos(grid.getLeftCenterPos());
         goal.setWidth(5);
         goal.setHeight(grid.translateLengthToScale(grid.GOAL_LEFT));
         goal.setColor(Colors.GOAL);
-        goals.add(goal);
+        map.setLeftgoal(goal);
 
         goal = new Mål();
         goal.setPos(grid.getRightCenterPos());
         goal.setWidth(5);
         goal.setHeight(grid.translateLengthToScale(grid.GOAL_RIGHT));
         goal.setColor(Colors.GOAL);
-        goals.add(goal);
-        map.setGoals(goals);
+        map.setRightgoal(goal);
     }
 
     private Set<Bold> createBalls(Vector2D[] vA, Grid grid){

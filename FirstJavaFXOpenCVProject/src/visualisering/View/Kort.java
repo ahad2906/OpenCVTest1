@@ -18,6 +18,7 @@ public class Kort {
     private Kryds cross;
     private Set<Bold> balls;
     private Set<Mål> goals;
+    private Mål leftgoal, rightgoal;
     private Set<Forhindring> obstacles;
     private Set<IDrawable> debug;
     private Canvas canvas;
@@ -55,8 +56,12 @@ public class Kort {
         return balls;
     }
 
-    public Set<Mål> getGoals() {
-        return goals;
+    public Mål getLeftgoal(){
+        return leftgoal;
+    }
+
+    public Mål getRightgoal(){
+        return rightgoal;
     }
 
     public Set<Forhindring> getObstacles() {
@@ -95,8 +100,12 @@ public class Kort {
         this.balls = balls;
     }
 
-    public void setGoals(Set<Mål> goals) {
-        this.goals = goals;
+    public void setLeftgoal(Mål leftgoal){
+        this.leftgoal = leftgoal;
+    }
+
+    public void setRightgoal(Mål rightgoal){
+        this.rightgoal = rightgoal;
     }
 
     public void setObstacles(Set<Forhindring> obstacles) {
@@ -124,13 +133,14 @@ public class Kort {
 
         grid.draw(context);
         if (robot != null) robot.draw(context);
-        for(Bold ball:balls)
-            ball.draw(context);
+        if (balls != null)
+            for(Bold ball:balls)
+                ball.draw(context);
 
         if (cross != null) cross.draw(context);
 
-        for(Mål goal:goals)
-            goal.draw(context);
+        leftgoal.draw(context);
+        rightgoal.draw(context);
 
         if(Debug.DEBUG)
             for(IDrawable obj:debug)

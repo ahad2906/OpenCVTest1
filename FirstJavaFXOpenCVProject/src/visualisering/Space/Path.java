@@ -20,8 +20,7 @@ public class Path implements IDrawable {
     private final Kort map;
     private List<Vector2D> path;
     private List<Vector2D> drawpath;
-    private SpaceObject target;
-    private boolean isCloseEdge, inCorner;
+    private boolean isCloseEdge, inCorner, inCross, isGoal;
     private int b_dir; //0 er bakhøjre og 1 er bakvenstre
     private final int WIDTH = 2;
     private Color color;
@@ -40,95 +39,102 @@ public class Path implements IDrawable {
         return inCorner;
     }
 
+    public boolean isInCross(){
+        return inCross;
+    }
+
+    public boolean isGoal(){
+        return isGoal;
+    }
+
     public int getB_dir(){
         return b_dir;
     }
 
     public void setTarget(SpaceObject obj){
-        this.target = obj;
-
-        /*if (target instanceof Mål){
-            //TODO
-        }*/
-
         Grid grid = map.getGrid();
         Kryds cross = map.getCross();
 
-        Vector2D target = this.target.getPos(),
+        Vector2D target = obj.getPos(),
                 pos = path.get(0), attackPoint = null,
                 correction = new Vector2D(0,5),
                 cross_pos = cross.getPos();
 
         float d = grid.translateLengthToScale(160), space = grid.translateLengthToScale(80);
         float norm_d = grid.translateLengthToScale(180), corner_d = grid.translateLengthToScale(340);
-        int scale = 10, v_scale = 5;
+        int scale = 10;
 
-        /*if (cross.isInside(target)){
-            isCloseEdge = true;
-            //TODO: vælg tilhørende angrebspunkt
-            attackPoint = target;//TODO
-        }
-        else*/ if (target.getX() < space){
-            isCloseEdge = true;
-            if (target.getY() < space){ //Top left
-                attackPoint = Vector2D.RIGHT().scale(scale).add(Vector2D.DOWN()).toUnit().scale(corner_d);
-                target.add(correction);
-                inCorner = true;
-                b_dir = 1;
-            }
-            else if (target.getY() > grid.HEIGHT-space){// Bottom left
-                attackPoint = Vector2D.RIGHT().scale(scale).add(Vector2D.UP()).toUnit().scale(corner_d);
-                target.subtract(correction);
-                inCorner = true;
-            }
-            else {
-                attackPoint = Vector2D.RIGHT().scale(norm_d);
-            }
-
-            attackPoint.add(target);
-        }
-        else if (target.getX() > grid.WIDTH-space) {
-            isCloseEdge = true;
-            if (target.getY() < space) { //Top right
-                attackPoint = Vector2D.LEFT().scale(scale).add(Vector2D.DOWN()).toUnit().scale(corner_d);
-                target.add(correction);
-                inCorner = true;
-            } else if (target.getY() > grid.HEIGHT-space) { //Bottom right
-                attackPoint = Vector2D.LEFT().scale(scale).add(Vector2D.UP()).toUnit().scale(corner_d);
-                target.subtract(correction);
-                inCorner = true;
-                b_dir = 1;
-            } else {
-                attackPoint = Vector2D.LEFT().scale(norm_d);
-            }
-
-            attackPoint.add(target);
-        }
-        else if (target.getY() < space){
-            isCloseEdge = true;
-
-            attackPoint = Vector2D.DOWN().scale(norm_d).add(target);
-        }
-        else if (target.getY() > grid.HEIGHT-space) {
-            isCloseEdge = true;
-
-            attackPoint = Vector2D.UP().scale(norm_d).add(target);
+        if (obj instanceof Mål){
+            isGoal = true;
+            attackPoint = Vector2D.RIGHT().scale(grid.translateLengthToScale(300)).add(target);
         }
         else {
-            float D = Vector2D.Distance(pos, target);
-            float x1 = pos.getX(), x2 = target.getX(), y1 = pos.getY(), y2 = target.getY();
-            attackPoint = new Vector2D(
-                    x2-(d/D)*(x2-x1),
-                    y2-(d/D)*(y2-y1)
-            );
+            //Tjekker hvor bolden befinder sig
+        if (cross.isInside(target)){ //I krydset
+            inCorner = true;
+            Vector2D[] points = cross.getAttackPoint(target);
+            attackPoint = points[0];
+            attackPoint.scale(corner_d);
+            attackPoint.add(points[1]);
+            target = points[1];
+        }
+        else if (target.getX() < space){ //Tæt på venstre bander
+                isCloseEdge = true;
+                if (target.getY() < space){ //Top left
+                    attackPoint = Vector2D.RIGHT().scale(scale).add(Vector2D.DOWN()).toUnit().scale(corner_d);
+                    target.add(correction);
+                    inCorner = true;
+                    b_dir = 1;
+                }
+                else if (target.getY() > grid.HEIGHT-space){// Bottom left
+                    attackPoint = Vector2D.RIGHT().scale(scale).add(Vector2D.UP()).toUnit().scale(corner_d);
+                    target.subtract(correction);
+                    inCorner = true;
+                }
+                else {
+                    attackPoint = Vector2D.RIGHT().scale(norm_d);
+                }
+
+                attackPoint.add(target);
+            }
+            else if (target.getX() > grid.WIDTH-space) { //Tæt på højre bander
+                isCloseEdge = true;
+                if (target.getY() < space) { //Top right
+                    attackPoint = Vector2D.LEFT().scale(scale).add(Vector2D.DOWN()).toUnit().scale(corner_d);
+                    target.add(correction);
+                    inCorner = true;
+                } else if (target.getY() > grid.HEIGHT-space) { //Bottom right
+                    attackPoint = Vector2D.LEFT().scale(scale).add(Vector2D.UP()).toUnit().scale(corner_d);
+                    target.subtract(correction);
+                    inCorner = true;
+                    b_dir = 1;
+                } else {
+                    attackPoint = Vector2D.LEFT().scale(norm_d);
+                }
+
+                attackPoint.add(target);
+            }
+            else if (target.getY() < space){ //Tæt på øverste bander
+                isCloseEdge = true;
+
+                attackPoint = Vector2D.DOWN().scale(norm_d).add(target);
+            }
+            else if (target.getY() > grid.HEIGHT-space) { //Tæt på nederste bander
+                isCloseEdge = true;
+
+                attackPoint = Vector2D.UP().scale(norm_d).add(target);
+            }
+            else { //Eller frit
+                float D = Vector2D.Distance(pos, target);
+                float x1 = pos.getX(), x2 = target.getX(), y1 = pos.getY(), y2 = target.getY();
+                attackPoint = new Vector2D(
+                        x2-(d/D)*(x2-x1),
+                        y2-(d/D)*(y2-y1)
+                );
+            }
         }
 
         path.add(target);
-
-        System.out.println("Path, target is at: "+target+" and attackpoint at: "+attackPoint);
-        System.out.println("Path, isClosesEdge = "+isCloseEdge);
-
-        path.add(1, attackPoint);
 
         //Tjekker om stien krydset krydset
         float a, b, c, s, A, h;
@@ -142,14 +148,23 @@ public class Path implements IDrawable {
 
         System.out.println("Path, h-val: "+h);
 
+        //Hvis stien går igennem krydset
         if (h < grid.translateLengthToScale(180) && c > a){
+            //Er der tale om en bold tæt på banderet?
+            if (isCloseEdge || isGoal){
+                path.add(1, attackPoint); //Tilføj det tidligere udregnet angrebspunkt
+            }
+            else {
+                attackPoint = target; //Sæt angræbspunkt til boldens position
+                c = Vector2D.Distance(pos, attackPoint); //Beregn den ny c afstand mellem robot og angrebspunkt
+            }
+
             System.out.println("Path goes through cross");
-            float B;
+            //Beregner detour, punktet hvor en retvinklet linje fra krydset
+            // skærer igennen linjen mellem robot og angrebspunkt
             A = (float)Math.asin((Math.sin(Math.toRadians(90))*h)/a);
             b = (float)Math.cos(A)*a;
-            s = grid.translateLengthToScale(220);
-
-            System.out.println("Path, a:"+a+" A: "+A+" b "+b+" s "+s+ " c: "+c);
+            s = grid.translateLengthToScale(300);
 
             float x1 = pos.getX(), x2 = attackPoint.getX(), y1 = pos.getY(), y2 = attackPoint.getY();
             Vector2D detour = new Vector2D(
@@ -157,44 +172,43 @@ public class Path implements IDrawable {
                     y1 + (b/c)*(y2-y1)
             );
 
-            System.out.println("Path, detour "+detour);
-
+            //Udregner enhedsvektoren af retningsvektoren fra krydset til detour punktet
             detour.subtract(cross_pos).toUnit();
-
-            System.out.println("Path, detour unit "+detour+" path dir unit "
-                    +Vector2D.CopyOf(attackPoint).subtract(pos).toUnit());
-
+            //Skalerer denne og flytter den i forhold til krydsets placering
             detour.scale(s).add(cross_pos);
+            //"Klemmer" vektoren immellem max og min
+            //detour.clamp(new Vector2D(0 + space,0 + space),
+                    //new Vector2D(grid.WIDTH - space, grid.HEIGHT - space));
 
-            System.out.println("Path detour scaled "+detour);
+            //Hvis bolden ikke er tæt på kanten, beregnes et nyt angrebspunkt med
+            // udgangspunkt i linjen fra detour punktet til bolden
+            if (!isCloseEdge && !isGoal){
+                float D = Vector2D.Distance(detour, target);
+                x1 = detour.getX();
+                x2 = target.getX();
+                y1 = detour.getY();
+                y2 = target.getY();
+                attackPoint = new Vector2D(
+                        x2-(d/D)*(x2-x1),
+                        y2-(d/D)*(y2-y1)
+                );
+                path.add(1, attackPoint);
+            }
+
+            //Tilføjer detour som vores næste punkt i stien
             path.add(1, detour);
 
-            /*//Alternativ
-            s = grid.translateLengthToScale(400);
-            Vector2D middle = Vector2D.Middle(pos, attackPoint).subtract(cross_pos);
-
-            System.out.println("Path, detour "+middle);
-
-            middle.toUnit();
-
-            System.out.println("Path, detour "+middle);
-
-            middle.scale(s);
-            System.out.println("Path, detour "+middle);
-
-            System.out.println("Path, cross "+cross);
-
-            middle.add(cross_pos);
-            System.out.println("Path, detour "+middle);
-
-            path.add(1, middle);*/
+        }
+        else { //hvis nu vi ikke går igennem krydset, så tilføj det tidligere udregnet angrebspunkt
+            path.add(1, attackPoint);
         }
 
+        // sætter vores drawpath liste til en kopi af vores path liste
         drawpath = new LinkedList<>(path);
 
     }
 
-    private boolean goesThroughCross(Vector2D pos, Vector2D target, Vector2D cross){
+    /*private boolean goesThroughCross(Vector2D pos, Vector2D target, Vector2D cross){
         float a, b, c, s, A, h;
         a = Vector2D.Distance(pos, cross);
         b = Vector2D.Distance(cross, target);
@@ -207,7 +221,7 @@ public class Path implements IDrawable {
         System.out.println("Path, h-val: "+h);
 
         return h < 65;
-    }
+    }*/
 
     public float getLength(){
         if (path.size() < 2) //Return if path size is lower than 2.
@@ -215,14 +229,14 @@ public class Path implements IDrawable {
 
         Vector2D start, end;
         start = drawpath.get(0);
-        float lenght = 0;
+        float length = 0;
         for (int i = 1; i < drawpath.size(); i++){
             end = drawpath.get(i);
-            lenght += Vector2D.Distance(start, end);
+            length += Vector2D.Distance(start, end);
             start = end;
         }
 
-        return lenght;
+        return length;
     }
 
     public void add(Vector2D v){
@@ -251,7 +265,7 @@ public class Path implements IDrawable {
         context.setStroke(color);
         context.setLineWidth(WIDTH);
         Vector2D start, end;
-        start = path.get(0);
+        start = drawpath.get(0);
         for (int i = 1; i < drawpath.size(); i++){
             end = drawpath.get(i);
             context.strokeLine(start.getX(), start.getY(),

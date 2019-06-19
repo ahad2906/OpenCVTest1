@@ -17,7 +17,7 @@ public class RobotSocket {
             BACKWARD = "tilbagekor ",
             TURN = "drej ",
             SUCK = "e",
-            BLOW = "r",
+            BLOW = "rr",
             MUSIC = "sound",
             VENSTREBAK = "venstrebak 50",
             HØJREBAK = "hojrebak 50";

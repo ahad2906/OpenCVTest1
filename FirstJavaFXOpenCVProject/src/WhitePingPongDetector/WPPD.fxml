@@ -19,7 +19,7 @@
             <Label text="Hue Start" />
             <Slider fx:id="hueStart1" min="0" max="180" value="0" blockIncrement="1" />
             <Label text="Hue Stop" />
-            <Slider fx:id="hueStop1" min="0" max="180" value="12" blockIncrement="1" />
+            <Slider fx:id="hueStop1" min="0" max="180" value="30" blockIncrement="1" />
             <Label text="Saturation Start" />
             <Slider fx:id="saturationStart" min="0" max="255" value="80" blockIncrement="1" />
             <Label text="Saturation Stop" />
@@ -30,9 +30,9 @@
             <Slider fx:id="valueStop" min="0" max="255" value="255" blockIncrement="1" />
 
             <Label text="Hue Start2" />
-            <Slider fx:id="hueStart2" min="0" max="180" value="160" blockIncrement="1" />
+            <Slider fx:id="hueStart2" min="0" max="180" value="150" blockIncrement="1" />
             <Label text="Hue Stop2" />
-            <Slider fx:id="hueStop2" min="0" max="180" value="179" blockIncrement="1" />
+            <Slider fx:id="hueStop2" min="0" max="180" value="180" blockIncrement="1" />
             <Label text="X start" />
 
 
