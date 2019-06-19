@@ -59,7 +59,8 @@ public class Path implements IDrawable {
                 correction = new Vector2D(0,5),
                 cross_pos = cross.getPos();
 
-        float d = grid.translateLengthToScale(120), space = grid.translateLengthToScale(80);
+        float d = grid.translateLengthToScale(160), space = grid.translateLengthToScale(80);
+        float norm_d = grid.translateLengthToScale(180), corner_d = grid.translateLengthToScale(340);
         int scale = 10, v_scale = 5;
 
         /*if (cross.isInside(target)){
@@ -70,48 +71,48 @@ public class Path implements IDrawable {
         else*/ if (target.getX() < space){
             isCloseEdge = true;
             if (target.getY() < space){ //Top left
-                attackPoint = Vector2D.RIGHT().scale(scale).add(Vector2D.DOWN());
+                attackPoint = Vector2D.RIGHT().scale(scale).add(Vector2D.DOWN()).toUnit().scale(corner_d);
                 target.add(correction);
                 inCorner = true;
                 b_dir = 1;
             }
             else if (target.getY() > grid.HEIGHT-space){// Bottom left
-                attackPoint = Vector2D.RIGHT().scale(scale).add(Vector2D.UP());
+                attackPoint = Vector2D.RIGHT().scale(scale).add(Vector2D.UP()).toUnit().scale(corner_d);
                 target.subtract(correction);
                 inCorner = true;
             }
             else {
-                attackPoint = Vector2D.RIGHT().scale(v_scale);
+                attackPoint = Vector2D.RIGHT().scale(norm_d);
             }
 
-            attackPoint.scale(d).add(target);
+            attackPoint.add(target);
         }
         else if (target.getX() > grid.WIDTH-space) {
             isCloseEdge = true;
             if (target.getY() < space) { //Top right
-                attackPoint = Vector2D.LEFT().scale(scale).add(Vector2D.DOWN());
+                attackPoint = Vector2D.LEFT().scale(scale).add(Vector2D.DOWN()).toUnit().scale(corner_d);
                 target.add(correction);
                 inCorner = true;
             } else if (target.getY() > grid.HEIGHT-space) { //Bottom right
-                attackPoint = Vector2D.LEFT().scale(scale).add(Vector2D.UP());
+                attackPoint = Vector2D.LEFT().scale(scale).add(Vector2D.UP()).toUnit().scale(corner_d);
                 target.subtract(correction);
                 inCorner = true;
                 b_dir = 1;
             } else {
-                attackPoint = Vector2D.LEFT().scale(v_scale);
+                attackPoint = Vector2D.LEFT().scale(norm_d);
             }
 
-            attackPoint.scale(d).add(target);
+            attackPoint.add(target);
         }
         else if (target.getY() < space){
             isCloseEdge = true;
 
-            attackPoint = Vector2D.DOWN().scale(v_scale).scale(d).add(target);
+            attackPoint = Vector2D.DOWN().scale(norm_d).add(target);
         }
         else if (target.getY() > grid.HEIGHT-space) {
             isCloseEdge = true;
 
-            attackPoint = Vector2D.UP().scale(v_scale).scale(d).add(target);
+            attackPoint = Vector2D.UP().scale(norm_d).add(target);
         }
         else {
             float D = Vector2D.Distance(pos, target);
@@ -141,7 +142,7 @@ public class Path implements IDrawable {
 
         System.out.println("Path, h-val: "+h);
 
-        if (h < grid.translateLengthToScale(180)){
+        if (h < grid.translateLengthToScale(180) && c > a){
             System.out.println("Path goes through cross");
             float B;
             A = (float)Math.asin((Math.sin(Math.toRadians(90))*h)/a);

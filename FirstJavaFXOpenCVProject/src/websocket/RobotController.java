@@ -19,7 +19,7 @@ public class RobotController {
     private Thread t;
     private boolean isTargeting, motorsStarted;
     private ScheduledExecutorService schedule;
-    private final float MIN_DIST = 5f, OFFSET = 0.98f, BACK_DIST = 20f, MIN_ANGLE = 5f;
+    private final float MIN_DIST = 5f, OFFSET = 0.82f, BACK_DIST = 20f, MIN_ANGLE = 5f;
 
     public RobotController(Grid grid){
         this.grid = grid;
@@ -76,7 +76,7 @@ public class RobotController {
                         }
                         else {
                             robotSocket.driveSlowForward(dist
-                                    - grid.translateLengthToMilimeters(robot.getHeight()) / 20);
+                                    - grid.translateLengthToMilimeters(robot.getHeight()) / 20 - 1.5f);
                         }
                     }
                     //Ellers køres der alm hastighed mod target
