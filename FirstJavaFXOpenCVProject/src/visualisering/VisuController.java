@@ -16,6 +16,9 @@ import visualisering.View.Kort;
 import websocket.RobotController;
 
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class VisuController {
     private final int UPDATETIME = 50;
@@ -25,7 +28,7 @@ public class VisuController {
     private long lastTime;
     private Controller2 otherController;
     private RobotController robotController;
-    private boolean started = false;
+    private boolean started = false, wasAtGoal;
     private AnimationTimer timer;
 
     private int tries;
@@ -73,7 +76,7 @@ public class VisuController {
                         updatePositions();
 
                         //PathFinding
-                        if (!robotController.isTargeting()) {
+                        if (robotController != null && !robotController.isTargeting()) {
                             createPath();
                             if (path.size() > 1) {
                                 robotController.target(path);
@@ -142,8 +145,13 @@ public class VisuController {
 
         if (balls == null || balls.size() <= 0){
             tries++;
-            if (tries > 9){
-                path.setTarget(map.getLeftgoal());
+            if (tries > 20){
+                if (wasAtGoal){
+                    //TODO: stop robot
+                }
+                else {
+                    path.setTarget(map.getLeftgoal());
+                }
             }
             return;
         }
@@ -325,11 +333,12 @@ public class VisuController {
 
     public void stopRobot() {
         robotController.close();
-
+        robotController = null;
     }
 
     //TODO: næste gang, tænd sluk visu samt robot
     public void startRobot(){
+        robotController = new RobotController(map.getGrid());
         robotController.start();
     }
 

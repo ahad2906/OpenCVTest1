@@ -203,7 +203,7 @@ public class RobotController {
     }
 
     public void close(){
-    schedule.shutdown();
+        schedule.shutdown();
         try {
             schedule.awaitTermination(33, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
@@ -214,5 +214,6 @@ public class RobotController {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        robotSocket = null;
     }
 }
