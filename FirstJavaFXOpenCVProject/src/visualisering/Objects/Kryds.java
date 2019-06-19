@@ -12,7 +12,7 @@ public class Kryds extends SpaceObject implements IDrawable {
     private Color color;
     private Vector2D[] corners;
 
-    public void setPoints(Vector2D[] vA, float attack_d, float max_width){
+    /*public void setPoints(Vector2D[] vA, float attack_d, float max_width){
         for (int j = 0; j < 2; j++) {
             if (!(Vector2D.Distance(vA[0], vA[1]) > Vector2D.Distance(vA[1], vA[4]))) {
                 Vector2D[] newVa = Arrays.copyOf(vA, vA.length);
@@ -56,7 +56,7 @@ public class Kryds extends SpaceObject implements IDrawable {
         setPos(position);
         setRotation(rotation);
 
-    }
+    }*/
 
     public boolean isInside(Vector2D v){
         return Vector2D.Distance(position, v) <= width/2;
@@ -64,32 +64,44 @@ public class Kryds extends SpaceObject implements IDrawable {
 
     public Vector2D[] getAttackPoint(Vector2D target){
         Vector2D[] vA = {
-                Vector2D.CopyOf(corners[11]).subtract(corners[0]),
-                Vector2D.CopyOf(corners[2]).subtract(corners[3]),
-                Vector2D.CopyOf(corners[5]).subtract(corners[6]),
-                Vector2D.CopyOf(corners[8]).subtract(corners[9]),
+                Vector2D.Middle(corners[9],corners[11]),
+                Vector2D.Middle(corners[0],corners[2]),
+                Vector2D.Middle(corners[3],corners[5]),
+                Vector2D.Middle(corners[6],corners[6]),
+                Vector2D.CopyOf(corners[11]).subtract(corners[0]).toUnit(),
+                Vector2D.CopyOf(corners[2]).subtract(corners[3]).toUnit(),
+                Vector2D.CopyOf(corners[5]).subtract(corners[6]).toUnit(),
+                Vector2D.CopyOf(corners[8]).subtract(corners[9]).toUnit(),
                 Vector2D.CopyOf(corners[11]),
                 Vector2D.CopyOf(corners[2]),
                 Vector2D.CopyOf(corners[5]),
                 Vector2D.CopyOf(corners[8])
         };
 
+        for (Vector2D v : vA){
+            System.out.println("Cross, vector "+v);
+        }
+
         Vector2D[] attackpoints = new Vector2D[2];
         float dist = Float.MAX_VALUE;
         for (int i = 0; i < 4; i++) {
-            float d = Vector2D.Distance(Vector2D.CopyOf(vA[i]).add(position),
-                    Vector2D.CopyOf(target).subtract(position));
+            float d = Vector2D.Distance(vA[i], target);
 
             if (d < dist){
                 dist = d;
-                attackpoints[0] = vA[i];
-                attackpoints[1] = vA[i+4];
+                attackpoints[0] = vA[i+4];
+                attackpoints[1] = vA[i+8];
             }
         }
 
-        attackpoints[0].toUnit();
+        System.out.println("Cross, found dir vector "+attackpoints[0]+
+                " with corner "+attackpoints[1]+" and target at "+ target);
 
         return attackpoints;
+    }
+
+    public void setCorners(Vector2D[] corners){
+        this.corners = corners;
     }
 
 
