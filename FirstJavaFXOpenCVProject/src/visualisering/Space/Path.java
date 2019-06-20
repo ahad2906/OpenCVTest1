@@ -66,7 +66,7 @@ public class Path implements IDrawable {
         float d = grid.translateLengthToScale(160), space = grid.translateLengthToScale(80),
                 space_corner = grid.translateLengthToScale(120);
         float norm_d = grid.translateLengthToScale(200), corner_d = grid.translateLengthToScale(340);
-        int scale = 5;
+        float scale = 4.5f;
 
         if (obj instanceof Mål) {
             isGoal = true;

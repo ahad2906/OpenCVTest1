@@ -156,12 +156,12 @@ public class RobotController {
                     if (path.size() < 2) {
                         //Hvis det drejer sig om et hjørne skal der bare køres fuld smader
                         if (path.isInCorner()) {
-                            robotSocket.driveForward(dist);
+                            robotSocket.driveForward(dist - 1f);
                         }
                         //Hvis det drejer sig om en rute til krydset skal vi lige køre mindre fremad
                         else if (path.isInCross()) {
                             robotSocket.driveSlowForward(dist
-                                    - grid.translateLengthToMilimeters(robot.getHeight()) / 20 - 3f);
+                                    - grid.translateLengthToMilimeters(robot.getHeight()) / 20 - 4f);
                         }
                         //Hvis den er tæt på banderet skal vi trække lidt fra
                         else if (path.isCloseEdge()) {
@@ -171,7 +171,7 @@ public class RobotController {
                         //Ellers kør normal langsom afstand
                         else {
                             robotSocket.driveSlowForward(dist
-                                    - grid.translateLengthToMilimeters(robot.getHeight()) / 20 - 1f);
+                                    - grid.translateLengthToMilimeters(robot.getHeight()) / 20);
                         }
                     }
                     //Ellers køres der alm hastighed mod target

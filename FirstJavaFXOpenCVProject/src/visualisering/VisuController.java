@@ -116,7 +116,7 @@ public class VisuController {
                 //Oversætter og skalerer punktet til en Vector2D
                 Vector2D v = grid.translatePos(new Vector2D((float) p.x, (float) p.y));
                 //Hvis bolden er indenfor banen tilføjes denne til listen
-                if (v.getY() < grid.HEIGHT && v.getY() > 0 && v.getX() < grid.WIDTH && v.getX() > 0
+                if (v.getY() < grid.HEIGHT+3 && v.getY() > -3 && v.getX() < grid.WIDTH+3 && v.getX() > -3
                         && grid.translateLengthToMilimeters(Vector2D.Distance(v, map.getRobot().getPos())) > 150) {
                     ballPos.add(v);
                 }
@@ -280,13 +280,15 @@ public class VisuController {
         float height = Vector2D.Distance(ver[0], ver[1]);
 
         //Tjekker om krydset er rigtigt
-        int margin = 5;
+        int margin = 4;
         //Hvis krydset er forvringet eller krydsets størrelse er for stort er det ikke et kryds
-        if (((width >= height + margin || width <= height - margin) &&
-                ((width + height) / 2 > grid.translateLengthToScale(250) ||
-                        (width + height) / 2 < grid.translateLengthToScale(180))) ||
-                //Hvis krydset er for tæt på robotten (under 150mm)
-                Vector2D.Distance(position, map.getRobot().getPos()) < grid.translateLengthToScale(150))
+        if (width > grid.translateLengthToScale(250) || height > grid.translateLengthToScale(250))
+            return cross;
+        if (width < grid.translateLengthToScale(180) || height < grid.translateLengthToScale(180))
+            return cross;
+        if (width >= height + margin || width <= height - margin)
+            return cross;
+        if (Vector2D.Distance(position, map.getRobot().getPos()) < grid.translateLengthToScale(150))
             return cross;
 
         //Sætter hjørnerne

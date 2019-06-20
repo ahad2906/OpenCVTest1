@@ -72,7 +72,7 @@ public class Controller2 {
     private Label hsvValues2;
 
     //Her er målene til de diverse objekter til systemet/banen/boldene/robotten
-    double camHeight = 163.2; // SKAL måles hver gang der testes med nyt opstilling
+    double camHeight = 171.9; // SKAL måles hver gang der testes med nyt opstilling
     double objectHeightBolde = 3.9;//3.7-4 cm
     double objectHeightKors = 3.3;
     double objectHeightBaneHjørne = 7.1;
