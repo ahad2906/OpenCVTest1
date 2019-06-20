@@ -25,10 +25,9 @@ public class Path implements IDrawable {
     private final int WIDTH = 2;
     private Color color;
 
-    public Path(@NotNull Vector2D startPoint, Kort map) {
+    public Path(@NotNull Kort map) {
         this.map = map;
         path = new ArrayList<>();
-        path.add(startPoint);
     }
 
     public boolean isCloseEdge() {
@@ -56,10 +55,14 @@ public class Path implements IDrawable {
         Kryds cross = map.getCross();
 
         Vector2D target = obj.getPos(),
-                pos = path.get(0), attackPoint = null,
+                pos = map.getRobot().getPos(), attackPoint = null,
                 correction = new Vector2D(0, 5),
                 cross_pos = cross.getPos();
 
+        //Tilføj robottens placering
+        path.add(pos);
+
+        //Definerer de forskellige afstands variabler
         float d = grid.translateLengthToScale(160), space = grid.translateLengthToScale(80),
                 space_corner = grid.translateLengthToScale(120);
         float norm_d = grid.translateLengthToScale(200), corner_d = grid.translateLengthToScale(340);
@@ -67,6 +70,8 @@ public class Path implements IDrawable {
 
         if (obj instanceof Mål) {
             isGoal = true;
+            attackPoint = Vector2D.RIGHT().scale(grid.translateLengthToScale(100)).add(target);
+            path.add(1, attackPoint);
             attackPoint = Vector2D.RIGHT().scale(grid.translateLengthToScale(300)).add(target);
         } else {
             //Tjekker hvor bolden befinder sig

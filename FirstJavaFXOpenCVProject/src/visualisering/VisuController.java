@@ -3,6 +3,7 @@ package visualisering;
 import WhitePingPongDetector.Controller2;
 import javafx.animation.AnimationTimer;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.paint.Color;
 import org.opencv.core.Point;
 import visualisering.Objects.Bold;
 import visualisering.Objects.Kryds;
@@ -13,11 +14,10 @@ import visualisering.Space.Path;
 import visualisering.Space.Vector2D;
 import visualisering.View.Colors;
 import visualisering.View.Kort;
+import visualisering.View.Text;
 import websocket.RobotController;
 
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class VisuController {
@@ -29,20 +29,24 @@ public class VisuController {
     private Controller2 otherController;
     private RobotController robotController;
     private boolean started = false, wasAtGoal;
-    private AnimationTimer timer;
+    private AnimationTimer animationTimer;
+    private Text timerTxt;
+    private long time, prevTime;
+    private boolean doCount;
+    private Thread timer;
 
     private int tries;
 
-    public VisuController(Controller2 other){
+    public VisuController(Controller2 other) {
         otherController = other;
     }
 
-    public Canvas createView(float width){
+    public Canvas createView(float width) {
         this.map = new Kort(width);
         return map.getCanvas();
     }
 
-    public void start(){
+    public void start() {
         if (started) return;
         started = true;
 
@@ -55,6 +59,11 @@ public class VisuController {
         grid.setColor(Colors.GRID);
         map.setGrid(grid);
 
+        //Laver animationTimer text
+        timerTxt = new Text();
+        timerTxt.setColor(Color.WHITE);
+        map.addDebugObject(timerTxt);
+
         //RobotController
         /*robotController = new RobotController(grid);
         robotController.start();*/
@@ -63,20 +72,19 @@ public class VisuController {
         createObjects(grid);
         //createPath();
 
-        timer = new AnimationTimer() {
+        animationTimer = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 //Runs every UPDATETIME
                 long cur = System.currentTimeMillis();
                 if (cur - lastTime > UPDATETIME) {
                     try {
-                        lastTime = cur;
-
                         //Updating positions
                         updatePositions();
 
                         //PathFinding
                         if (robotController != null && !robotController.isTargeting()) {
+
                             createPath();
                             if (path.size() > 1) {
                                 robotController.target(path);
@@ -85,34 +93,35 @@ public class VisuController {
 
                         //Draw map
                         map.update();
-                    }
-                    catch (NullPointerException e){
+
+                        lastTime = System.currentTimeMillis();
+                    } catch (NullPointerException e) {
                         e.printStackTrace();
                     }
                 }
             }
         };
 
-        timer.start();
+        animationTimer.start();
     }
 
-    private void updatePositions(){
+    private void updatePositions() {
         Grid grid = map.getGrid();
 
         //Fetch points
-        List<Vector2D>  robotPos = new ArrayList<>();
+        List<Vector2D> robotPos = new ArrayList<>();
         List<Point> robotPoints = otherController.getRobot();
         List<Vector2D> ballPos = new ArrayList<>();
         List<Point> ballPoints = otherController.getBalls();
 
         //Update balls
-        if (map.getRobot() != null && ballPoints != null && ballPoints.size() >= nbOfBalls){
-            for (Point p : ballPoints){
+        if (map.getRobot() != null && ballPoints != null && ballPoints.size() >= nbOfBalls) {
+            for (Point p : ballPoints) {
                 //Oversætter og skalerer punktet til en Vector2D
-                Vector2D v = grid.translatePos(new Vector2D((float)p.x, (float)p.y));
+                Vector2D v = grid.translatePos(new Vector2D((float) p.x, (float) p.y));
                 //Hvis bolden er indenfor banen tilføjes denne til listen
                 if (v.getY() < grid.HEIGHT && v.getY() > 0 && v.getX() < grid.WIDTH && v.getX() > 0
-                        && grid.translateLengthToMilimeters(Vector2D.Distance(v, map.getRobot().getPos())) > 120){
+                        && grid.translateLengthToMilimeters(Vector2D.Distance(v, map.getRobot().getPos())) > 120) {
                     ballPos.add(v);
                 }
             }
@@ -129,7 +138,7 @@ public class VisuController {
 
         //Update cross
         List<Point> cPoints = Arrays.asList(otherController.getCross());
-        if (!cPoints.contains(null) && cPoints.size() ==12){
+        if (!cPoints.contains(null) && cPoints.size() == 12) {
             map.setCross(updateCross(pointToVector(cPoints.toArray(new Point[0])), grid));
         }
     }
@@ -137,43 +146,46 @@ public class VisuController {
     private void createPath() {
         if (path != null) map.removeDebugObject(path);
 
-        path = new Path(map.getRobot().getPos(), map);
-        path.setColor(Colors.PATH);
-
         Bold ball = null;
-        Set<Bold> balls = map.getBalls();
+        Bold[] balls = map.getBalls().toArray(new Bold[0]);
 
-        if (balls == null || balls.size() <= 0){
+        if (balls.length <= 0) {
             tries++;
-            if (tries > 20){
-                if (wasAtGoal){
-                    //TODO: stop robot
-                }
-                else {
+            if (tries > 20) {
+                if (wasAtGoal) {
+                    robotController.close();
+                    doCount = false;
+                } else {
                     path.setTarget(map.getLeftgoal());
                 }
             }
             return;
         }
-
         tries = 0;
+
+        //Finder den korteste sti
+        Path[] paths = new Path[balls.length];
         float min = Float.MAX_VALUE;
-        for (Bold b : balls){
-            float dist = Vector2D.Distance(b.getPos(), path.getLast());
-            if (dist < min){
+        int index = 0;
+        for (int i = 0; i < balls.length; i++) {
+            paths[i] = new Path(map);
+            paths[i].setTarget(balls[i]);
+            float dist = paths[i].getLength();
+            if (dist < min) {
                 min = dist;
-                ball = b;
+                index = i;
             }
         }
-        if (ball != null) {
-            path.setTarget(ball);
-        }
+
+        //Sætter den korteste sti til path field'et
+        path = paths[index];
+        path.setColor(Colors.PATH);
         map.addDebugObject(path);
 
-        System.out.println("Path lenght in mm is: "+map.getGrid().translateLengthToMilimeters(path.getLength()));
+        System.out.println("Path lenght in mm is: " + map.getGrid().translateLengthToMilimeters(path.getLength()));
     }
 
-    private void createObjects(Grid grid){
+    private void createObjects(Grid grid) {
         /*//Nodes
         Node[][] nodes = new Node[(int)grid.CELLS_HOR][(int)grid.CELLS_VER];
         for (int i = 0; i < nodes.length; i++){
@@ -206,9 +218,9 @@ public class VisuController {
         map.setRightgoal(goal);
     }
 
-    private Set<Bold> createBalls(Vector2D[] vA, Grid grid){
+    private Set<Bold> createBalls(Vector2D[] vA, Grid grid) {
         Bold[] balls = new Bold[vA.length];
-        for (int i = 0; i < vA.length; i++){
+        for (int i = 0; i < vA.length; i++) {
             balls[i] = new Bold();
             float diameter = grid.translateLengthToScale(40);
             balls[i].setWidth(diameter);
@@ -219,14 +231,14 @@ public class VisuController {
         return new HashSet<>(Arrays.asList(balls));
     }
 
-    private Robot updateRobot(Vector2D[] vA, Grid grid){
+    private Robot updateRobot(Vector2D[] vA, Grid grid) {
         //Oversætter positionerne
         vA = grid.translatePositions(vA);
 
         Robot robot = map.getRobot();
 
         //Hvis der ikkke findes nogen instans af robotten, så lav en
-        if(robot == null){
+        if (robot == null) {
             robot = new Robot();
             //Farven
             robot.setColor(Colors.ROBOT);
@@ -235,8 +247,6 @@ public class VisuController {
             float size = Vector2D.Distance(vA[0], vA[1]);
             robot.setWidth(size);
             robot.setHeight(size);
-
-            robotController.setRobot(robot);
         }
 
         robot.setFrontAndBack(vA);
@@ -244,12 +254,12 @@ public class VisuController {
         return robot;
     }
 
-    private Kryds updateCross(Vector2D[] vA, Grid grid){
+    private Kryds updateCross(Vector2D[] vA, Grid grid) {
         vA = grid.translatePositions(vA);
 
         Kryds cross = map.getCross();
 
-        if (cross == null){
+        if (cross == null) {
             cross = new Kryds();
             cross.setColor(Colors.OBSTACLE);
         }
@@ -267,14 +277,14 @@ public class VisuController {
 
         //Finder de to horizontale punkter
         Vector2D[] hor = {
-                Vector2D.Middle(vA[2],vA[3]),
-                Vector2D.Middle(vA[8],vA[9])
+                Vector2D.Middle(vA[2], vA[3]),
+                Vector2D.Middle(vA[8], vA[9])
         };
 
         //Finder de to vertikale punkter
         Vector2D[] ver = {
-                Vector2D.Middle(vA[5],vA[6]),
-                Vector2D.Middle(vA[0],vA[11])
+                Vector2D.Middle(vA[5], vA[6]),
+                Vector2D.Middle(vA[0], vA[11])
         };
 
         //Finder midten
@@ -289,10 +299,10 @@ public class VisuController {
         int margin = 5;
         //Hvis krydset er forvringet eller krydsets størrelse er for stort er det ikke et kryds
         if (((width >= height + margin || width <= height - margin) &&
-                (width+height)/2 > grid.translateLengthToScale(250) ||
-                (width+height)/2 < grid.translateLengthToScale(180))||
+                ((width + height) / 2 > grid.translateLengthToScale(250) ||
+                        (width + height) / 2 < grid.translateLengthToScale(180))) ||
                 //Hvis krydset er for tæt på robotten (under 150mm)
-        Vector2D.Distance(position, map.getRobot().getPos()) < grid.translateLengthToScale(150))
+                Vector2D.Distance(position, map.getRobot().getPos()) < grid.translateLengthToScale(150))
             return cross;
 
         /*if (cross.getPos() != null &&
@@ -315,10 +325,10 @@ public class VisuController {
         return cross;
     }
 
-    private Vector2D[] pointToVector(Point[] points){
+    private Vector2D[] pointToVector(Point[] points) {
         Vector2D[] vA = new Vector2D[points.length];
-        for (int i = 0; i < vA.length; i++){
-            vA[i] = new Vector2D((float)points[i].x, (float)points[i].y);
+        for (int i = 0; i < vA.length; i++) {
+            vA[i] = new Vector2D((float) points[i].x, (float) points[i].y);
         }
         return vA;
     }
@@ -326,16 +336,41 @@ public class VisuController {
     public void stopRobot() {
         robotController.close();
         robotController = null;
+        doCount = false;
     }
 
-    //TODO: næste gang, tænd sluk visu samt robot
-    public void startRobot(){
+    public void startRobot() {
         robotController = new RobotController(map.getGrid());
         robotController.start();
+        robotController.setRobot(map.getRobot());
+        doCount = true;
+
+        timer = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (doCount) {
+                    //Set timer text
+                    long cur = System.currentTimeMillis();
+                    if (prevTime != 0) {
+                        time += cur - prevTime;
+
+                        long millis, seconds, minutes;
+                        minutes = TimeUnit.MILLISECONDS.toMinutes(time);
+                        seconds = TimeUnit.MILLISECONDS.toSeconds(time) - TimeUnit.MINUTES.toSeconds(minutes);
+                        millis = time - TimeUnit.SECONDS.toMillis(seconds) - TimeUnit.MINUTES.toMillis(minutes);
+                        timerTxt.setText(minutes+"m "+seconds+"s "+millis);
+                    }
+                    prevTime = cur;
+
+                }
+            }
+        });
+
+        timer.start();
     }
 
-    public void close(){
-        timer.stop();
+    public void close() {
+        animationTimer.stop();
         started = false;
         stopRobot();
     }

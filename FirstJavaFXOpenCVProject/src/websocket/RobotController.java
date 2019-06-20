@@ -163,6 +163,12 @@ public class RobotController {
                         if (path.isInCorner()){
                             robotSocket.driveForward(dist);
                         }
+                        //Hvis det drejer sig om en rute til krydset skal vi lige køre mindre fremad
+                        else if (path.isInCross()){
+                            robotSocket.driveSlowForward(dist
+                                    - grid.translateLengthToMilimeters(robot.getHeight()) / 20 - 5f);
+                        }
+                        //Ellers kør normal langsom afstand
                         else {
                             robotSocket.driveSlowForward(dist
                                     - grid.translateLengthToMilimeters(robot.getHeight()) / 20 - 1f);
@@ -228,15 +234,15 @@ public class RobotController {
     }
 
     public void close(){
+        try {
+            robotSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         schedule.shutdown();
         try {
             schedule.awaitTermination(33, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        try {
-            robotSocket.close();
-        } catch (IOException e) {
             e.printStackTrace();
         }
         robotSocket = null;

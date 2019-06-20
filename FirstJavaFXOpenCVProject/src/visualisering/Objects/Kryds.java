@@ -63,7 +63,7 @@ public class Kryds extends SpaceObject implements IDrawable {
     }
 
     public Vector2D[] getAttackPoint(Vector2D target){
-        float scale = 4f;
+        float scale = 3f;
         Vector2D[] vA = {
                 Vector2D.Middle(corners[9],corners[11]).subtract(position).toUnit(),
                 Vector2D.Middle(corners[0],corners[2]).subtract(position).toUnit(),

@@ -18,7 +18,7 @@ public class RobotSocket {
             TURN = "drej ",
             SUCK = "e",
             BLOW = "rr",
-            MUSIC = "sound",
+            SOUND = "sound",
             LEFT_BACK = "venstrebak 50",
             RIGHT_BACK = "hojrebak 50",
             SLOW_TURN = "korsdrej ";
@@ -85,6 +85,8 @@ public class RobotSocket {
     }
 
     public void stop() throws IOException {
+        start();
+        outToServer.writeBytes(SOUND+"\n");
         start();
         outToServer.writeBytes("q\n");
         start();
