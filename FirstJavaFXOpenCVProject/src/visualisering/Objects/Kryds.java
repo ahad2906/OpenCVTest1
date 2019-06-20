@@ -59,10 +59,11 @@ public class Kryds extends SpaceObject implements IDrawable {
     }*/
 
     public boolean isInside(Vector2D v){
-        return Vector2D.Distance(position, v) <= width/2;
+        return Vector2D.Distance(position, v) <= width/1.5;
     }
 
     public Vector2D[] getAttackPoint(Vector2D target){
+        float scale = 4.5f;
         Vector2D[] vA = {
                 Vector2D.Middle(corners[9],corners[11]).subtract(position).toUnit(),
                 Vector2D.Middle(corners[0],corners[2]).subtract(position).toUnit(),
@@ -72,10 +73,10 @@ public class Kryds extends SpaceObject implements IDrawable {
                 Vector2D.CopyOf(corners[2]).subtract(corners[3]).toUnit(),
                 Vector2D.CopyOf(corners[5]).subtract(corners[6]).toUnit(),
                 Vector2D.CopyOf(corners[8]).subtract(corners[9]).toUnit(),
-                Vector2D.CopyOf(corners[11]),
-                Vector2D.CopyOf(corners[2]),
-                Vector2D.CopyOf(corners[5]),
-                Vector2D.CopyOf(corners[8])
+                Vector2D.CopyOf(corners[11]).subtract(corners[10]).toUnit().scale(scale).add(corners[11]),
+                Vector2D.CopyOf(corners[2]).subtract(corners[1]).toUnit().scale(scale).add(corners[2]),
+                Vector2D.CopyOf(corners[5]).subtract(corners[4]).toUnit().scale(scale).add(corners[5]),
+                Vector2D.CopyOf(corners[8]).subtract(corners[7]).toUnit().scale(scale).add(corners[8])
         };
 
         for (Vector2D v : vA){

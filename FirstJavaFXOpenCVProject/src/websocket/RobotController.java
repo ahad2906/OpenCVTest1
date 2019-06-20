@@ -19,7 +19,7 @@ public class RobotController {
     private Thread t;
     private boolean isTargeting, isDone;
     private ScheduledExecutorService schedule;
-    private final float MIN_DIST = 5f, OFFSET = 0.9f, BACK_DIST = 20f, MIN_ANGLE = 5f;
+    private final float MIN_DIST = 3f, OFFSET = 0.95f, BACK_DIST = 18f, MIN_ANGLE = 5f;
 
     public RobotController(Grid grid){
         this.grid = grid;
@@ -33,7 +33,7 @@ public class RobotController {
 
         this.schedule = Executors.newSingleThreadScheduledExecutor();
         // Her sættes framerate (Runnable, initialDelay, framerate, tidsenhed )
-        this.schedule.scheduleAtFixedRate(runnable, 0, 100, TimeUnit.MILLISECONDS);
+        this.schedule.scheduleAtFixedRate(runnable, 0, 120, TimeUnit.MILLISECONDS);
     }
 
     public void update(){
@@ -53,7 +53,12 @@ public class RobotController {
                     //Drejer mod target og retter op hvis det er forkert
                     int i = 0;
                     while (i < 2 && angleCheck(Math.abs(angle), Math.abs(dist))) {
-                        robotSocket.turn(angle);
+                        if (i < 1) {
+                            robotSocket.turn(angle);
+                        }
+                        else {
+                            robotSocket.turnSlow(angle);
+                        }
                         angle = robot.getAngleToTarget();
                         i++;
                     }
@@ -62,7 +67,7 @@ public class RobotController {
                     if (path.size() < 2){
                         //Hvis det drejer sig om et hjørne skal der bare køres fuld smader
                         robotSocket.driveSlowForward(dist
-                                    - grid.translateLengthToMilimeters(robot.getHeight()) / 15);
+                                    - grid.translateLengthToMilimeters(robot.getHeight()) / 13);
                     }
                     //Ellers køres der alm hastighed mod target
                     else {
@@ -83,7 +88,12 @@ public class RobotController {
                 float angle = robot.getAngleToTarget();
                 int i = 0;
                 while (i < 2 && angle > 4) {
-                    robotSocket.turn(angle);
+                    if (i < 1) {
+                        robotSocket.turn(angle);
+                    }
+                    else {
+                        robotSocket.turnSlow(angle);
+                    }
                     angle = robot.getAngleToTarget();
                     i++;
                 }
@@ -126,15 +136,25 @@ public class RobotController {
 
                     //Drejer mod target og retter op hvis det er forkert
                     int i = 0;
-                    while (i < 3 && angleCheck(Math.abs(angle), Math.abs(dist))) {
+                    while (i < 2 && angleCheck(Math.abs(angle), Math.abs(dist))) {
                         if (!path.isInCross()) {
-                            robotSocket.turn(angle);
+                            if (i < 1) {
+                                robotSocket.turn(angle);
+                            }
+                            else {
+                                robotSocket.turnSlow(angle);
+                            }
                         }
                         else {
                             robotSocket.turnSlow(angle);
                         }
                         angle = robot.getAngleToTarget();
                         i++;
+                        try {
+                            Thread.sleep(80);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
 
                     //Hvis path'en er lavere end 2, er det en bold og derfor køres der langsomt
@@ -145,7 +165,7 @@ public class RobotController {
                         }
                         else {
                             robotSocket.driveSlowForward(dist
-                                    - grid.translateLengthToMilimeters(robot.getHeight()) / 20 + 2f);
+                                    - grid.translateLengthToMilimeters(robot.getHeight()) / 20 - 1f);
                         }
                     }
                     //Ellers køres der alm hastighed mod target
@@ -153,7 +173,7 @@ public class RobotController {
                         robotSocket.driveForward(dist*OFFSET);
 
                         //Tjekker om den har kørt langt nok, hvis ikke, så tilføjes punktet på igen
-                        if (path.isCloseEdge() || path.isInCross()) {
+                        if (path.isCloseEdge() || path.isInCross() || path.isInCorner()) {
                             dist = (grid.translateLengthToMilimeters(robot.getDistToTarget()) -
                                     grid.translateLengthToMilimeters(robot.getHeight()) / 2f) / 10;
                             if (dist > MIN_DIST) {
@@ -164,7 +184,7 @@ public class RobotController {
                 }
 
                 //Hvis robotten har lavet en manøvre tæt på banderet bakker den
-                if (path.isCloseEdge() || path.isInCross()){
+                if (path.isCloseEdge() || path.isInCross() || path.isInCorner()){
                     //Bak hurtigt ud hvis man var i et hjørne
                     if (path.isInCorner()){
                         if (path.getB_dir() == 1){

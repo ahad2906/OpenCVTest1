@@ -76,7 +76,7 @@ public class Controller2 {
     private Label hsvValues2;
 
     //Her er målene til de diverse objekter til systemet/banen/boldene/robotten
-    double camHeight = 172.2; // SKAL måles hver gang der testes med nyt opstilling
+    double camHeight = 163.2; // SKAL måles hver gang der testes med nyt opstilling
     double objectHeightBolde = 3.9;//3.7-4 cm
     double objectHeightKors = 3.3;
     double objectHeightBaneHjørne = 7.1;
@@ -225,8 +225,16 @@ public class Controller2 {
     }
 
     @FXML
-    protected void stopRobot(){
-        visuController.stopRobot();
+    protected void startRobot(){
+        String start = "Start Robot", stop = "Stop Robot";
+        if (button3.getText().equals(start)){
+            visuController.startRobot();
+            button3.setText(stop);
+        }
+        else {
+            visuController.stopRobot();
+            button3.setText(start);
+        }
     }
 
     /**
@@ -468,7 +476,7 @@ public class Controller2 {
         double vinkelProjectPoint = Math.toDegrees(Math.asin(camHeight/(Math.sqrt(Math.pow(camHeight,2)+Math.pow(grundlinje, 2)))));
 
         double robotTopVinkel = 90-vinkelProjectPoint;
-        double projectLength = (objectHeight*robotTopVinkel)/vinkelProjectPoint;
+        double projectLength = (objectHeight*Math.sin(Math.toRadians(robotTopVinkel)))/Math.sin(Math.toRadians(vinkelProjectPoint));
         double grundLinje2 = grundlinje-projectLength;
         double strengthFactor = grundLinje2/grundlinje;
         double xChange = centerPoint.x-projectPoint.x;

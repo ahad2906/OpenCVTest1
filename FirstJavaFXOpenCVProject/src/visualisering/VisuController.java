@@ -56,8 +56,8 @@ public class VisuController {
         map.setGrid(grid);
 
         //RobotController
-        robotController = new RobotController(grid);
-        robotController.start();
+        /*robotController = new RobotController(grid);
+        robotController.start();*/
 
         //Skab objekterne
         createObjects(grid);
