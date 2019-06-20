@@ -101,12 +101,12 @@ public class RobotController {
                 robotSocket.blow();
 
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(2500);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
                 //
-                robotSocket.driveBackward(20);
+                robotSocket.driveBackward(15);
 
                 isDone = false;
                 isTargeting = false;
