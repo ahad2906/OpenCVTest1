@@ -64,10 +64,10 @@ public class Kryds extends SpaceObject implements IDrawable {
 
     public Vector2D[] getAttackPoint(Vector2D target){
         Vector2D[] vA = {
-                Vector2D.Middle(corners[9],corners[11]),
-                Vector2D.Middle(corners[0],corners[2]),
-                Vector2D.Middle(corners[3],corners[5]),
-                Vector2D.Middle(corners[6],corners[6]),
+                Vector2D.Middle(corners[9],corners[11]).subtract(position).toUnit(),
+                Vector2D.Middle(corners[0],corners[2]).subtract(position).toUnit(),
+                Vector2D.Middle(corners[3],corners[5]).subtract(position).toUnit(),
+                Vector2D.Middle(corners[6],corners[6]).subtract(position).toUnit(),
                 Vector2D.CopyOf(corners[11]).subtract(corners[0]).toUnit(),
                 Vector2D.CopyOf(corners[2]).subtract(corners[3]).toUnit(),
                 Vector2D.CopyOf(corners[5]).subtract(corners[6]).toUnit(),
@@ -82,20 +82,34 @@ public class Kryds extends SpaceObject implements IDrawable {
             System.out.println("Cross, vector "+v);
         }
 
-        Vector2D[] attackpoints = new Vector2D[2];
-        float dist = Float.MAX_VALUE;
-        for (int i = 0; i < 4; i++) {
-            float d = Vector2D.Distance(vA[i], target);
+        //Retningsvektoren fra krydset til bolden
+        Vector2D b_dir = Vector2D.CopyOf(target).subtract(position);
 
-            if (d < dist){
-                dist = d;
+        //Vi prøver at finde hvilket indhak i krydset bolden ligger
+        Vector2D[] attackpoints = new Vector2D[2];
+        float degrees = Float.MAX_VALUE;
+        int j = 0;
+        for (int i = 0; i < 4; i++) {
+
+            //Beregner vinklen mellem boldens retningsvektor og retningsvektoren for et af krydsets "huller"
+            float cos0 = Vector2D.DotProduct(b_dir, vA[i]) /
+                    (b_dir.getMagnitude() * vA[i].getMagnitude());
+            float d = (float)Math.toDegrees(Math.acos(cos0));
+
+            System.out.println("Cross, degrees: "+d+", dir vector: "+vA[i]+", b_dir: "+b_dir);
+
+            //Hvis denne er lavere end forrige, gør den til den nye vinkel og vælg dette hul
+            if (d < degrees){
+                j = i;
+                degrees = d;
                 attackpoints[0] = vA[i+4];
                 attackpoints[1] = vA[i+8];
             }
         }
 
-        System.out.println("Cross, found dir vector "+attackpoints[0]+
-                " with corner "+attackpoints[1]+" and target at "+ target);
+        System.out.println("Cross, found unit vector: "+attackpoints[0]+
+                " where dir vector: "+vA[j]+" had an angle of "+degrees+
+                " degrees from target direction vector: "+b_dir);
 
         return attackpoints;
     }

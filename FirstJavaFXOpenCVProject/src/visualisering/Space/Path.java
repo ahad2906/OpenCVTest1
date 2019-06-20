@@ -61,7 +61,7 @@ public class Path implements IDrawable {
                 cross_pos = cross.getPos();
 
         float d = grid.translateLengthToScale(160), space = grid.translateLengthToScale(80);
-        float norm_d = grid.translateLengthToScale(180), corner_d = grid.translateLengthToScale(340);
+        float norm_d = grid.translateLengthToScale(200), corner_d = grid.translateLengthToScale(340);
         int scale = 10;
 
         if (obj instanceof Mål){
@@ -71,7 +71,7 @@ public class Path implements IDrawable {
         else {
             //Tjekker hvor bolden befinder sig
         if (cross.isInside(target)){ //I krydset
-            inCorner = true;
+            inCross = true;
             Vector2D[] points = cross.getAttackPoint(target);
             attackPoint = points[0];
             attackPoint.scale(corner_d);
@@ -149,9 +149,9 @@ public class Path implements IDrawable {
         System.out.println("Path, h-val: "+h);
 
         //Hvis stien går igennem krydset
-        if (h < grid.translateLengthToScale(180) && c > a){
+        if (h < grid.translateLengthToScale(200) && c >= a-5){
             //Er der tale om en bold tæt på banderet?
-            if (isCloseEdge || isGoal){
+            if (isCloseEdge || isGoal || inCross){
                 path.add(1, attackPoint); //Tilføj det tidligere udregnet angrebspunkt
             }
             else {
@@ -182,7 +182,7 @@ public class Path implements IDrawable {
 
             //Hvis bolden ikke er tæt på kanten, beregnes et nyt angrebspunkt med
             // udgangspunkt i linjen fra detour punktet til bolden
-            if (!isCloseEdge && !isGoal){
+            if (!isCloseEdge && !isGoal && !inCross){
                 float D = Vector2D.Distance(detour, target);
                 x1 = detour.getX();
                 x2 = target.getX();

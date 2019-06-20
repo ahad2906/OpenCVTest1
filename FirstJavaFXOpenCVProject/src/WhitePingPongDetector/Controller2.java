@@ -76,7 +76,7 @@ public class Controller2 {
     private Label hsvValues2;
 
     //Her er målene til de diverse objekter til systemet/banen/boldene/robotten
-    double camHeight = 167; // SKAL måles hver gang der testes med nyt opstilling
+    double camHeight = 172.2; // SKAL måles hver gang der testes med nyt opstilling
     double objectHeightBolde = 3.9;//3.7-4 cm
     double objectHeightKors = 3.3;
     double objectHeightBaneHjørne = 7.1;
@@ -602,7 +602,7 @@ public class Controller2 {
                     Imgproc.medianBlur(grayImage, detectedEdges, 3);
 
                     //Imgproc.GaussianBlur(grayImage, detectedEdges, new Size(3,3), 2, 2);
-                    Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_CROSS, new  Size(5, 5));
+                    Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_CROSS, new  Size(1, 1));
 
                     // Imgproc.blur(grayImage, detectedEdges, new Size(3, 3));
                     // canny detector, with ratio of lower:upper threshold of 3:1

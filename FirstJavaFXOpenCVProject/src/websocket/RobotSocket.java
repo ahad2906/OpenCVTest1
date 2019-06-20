@@ -19,13 +19,14 @@ public class RobotSocket {
             SUCK = "e",
             BLOW = "rr",
             MUSIC = "sound",
-            VENSTREBAK = "venstrebak 50",
-            HØJREBAK = "hojrebak 50";
+            LEFT_BACK = "venstrebak 50",
+            RIGHT_BACK = "hojrebak 50",
+            SLOW_TURN = "korsdrej ";
 
     public void start() throws IOException {
         while (true){
             try {
-                clientSocket = new Socket("192.168.137.153", 6789);
+                clientSocket = new Socket("192.168.137.229", 6789);
                 outToServer = new DataOutputStream(clientSocket.getOutputStream());
                 inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 break;
@@ -57,12 +58,17 @@ public class RobotSocket {
         sendMessage(BACKWARD+dist);
     }
 
+    public void turnSlow(float angle) throws IOException {
+        System.out.println("Socket, turn slow: "+angle);
+        sendMessage(SLOW_TURN+angle);
+    }
+
     public void backLeft() throws IOException {
-        sendMessage(VENSTREBAK);
+        sendMessage(LEFT_BACK);
     }
 
     public void backRight() throws IOException {
-        sendMessage(HØJREBAK);
+        sendMessage(RIGHT_BACK);
     }
 
     public void turn(float angle) throws IOException {

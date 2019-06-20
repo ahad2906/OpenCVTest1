@@ -112,7 +112,7 @@ public class VisuController {
                 Vector2D v = grid.translatePos(new Vector2D((float)p.x, (float)p.y));
                 //Hvis bolden er indenfor banen tilføjes denne til listen
                 if (v.getY() < grid.HEIGHT && v.getY() > 0 && v.getX() < grid.WIDTH && v.getX() > 0
-                        && grid.translateLengthToMilimeters(Vector2D.Distance(v, map.getRobot().getPos())) > 85){
+                        && grid.translateLengthToMilimeters(Vector2D.Distance(v, map.getRobot().getPos())) > 120){
                     ballPos.add(v);
                 }
             }
@@ -286,13 +286,20 @@ public class VisuController {
         float height = Vector2D.Distance(ver[0], ver[1]);
 
         //Tjekker om krydset er rigtigt
-        //Hvis krydsets størrelse er for stort er det ikke et kryds
-        if ((width+height)/2 > grid.translateLengthToScale(250) ||
-                //Hvis krydset har flyttet sig mere end 150mm
-        Vector2D.Distance(cross.getPos(), position) > grid.translateLengthToScale(150) ||
+        int margin = 5;
+        //Hvis krydset er forvringet eller krydsets størrelse er for stort er det ikke et kryds
+        if (((width >= height + margin || width <= height - margin) &&
+                (width+height)/2 > grid.translateLengthToScale(250) ||
+                (width+height)/2 < grid.translateLengthToScale(180))||
                 //Hvis krydset er for tæt på robotten (under 150mm)
         Vector2D.Distance(position, map.getRobot().getPos()) < grid.translateLengthToScale(150))
             return cross;
+
+        /*if (cross.getPos() != null &&
+                //Hvis krydset har flyttet sig mere end 150mm
+                Vector2D.Distance(cross.getPos(), position) > grid.translateLengthToScale(150)){
+            return cross;
+        }*/
 
         //Sætter hjørnerne
         cross.setCorners(vA);
@@ -304,21 +311,6 @@ public class VisuController {
         cross.setRotation(rotation);
 
         //cross.setPoints(vA, 0, grid.translateLengthToScale(250));
-
-        /*
-        //Beregner ændringen siden sidste check
-        float pos_change = Vector2D.Distance(cross.getPos(), position);
-        //Hvis den er for stor eller for lille ændres den ikke
-        if (pos_change > 2 && pos_change < 20){
-            cross.setPos(position);
-
-            //Beregner ændringen i vinkeln siden sidst
-            float rot_change = cross.getRotation()-rotation;
-            //Hvis den møder kriterierne ændres dennne
-            if (rot_change < 30 && rot_change > -30){
-                cross.setRotation(rotation);
-            }
-        }*/
 
         return cross;
     }

@@ -19,7 +19,7 @@ public class RobotController {
     private Thread t;
     private boolean isTargeting, isDone;
     private ScheduledExecutorService schedule;
-    private final float MIN_DIST = 5f, OFFSET = 0.82f, BACK_DIST = 20f, MIN_ANGLE = 5f;
+    private final float MIN_DIST = 5f, OFFSET = 0.9f, BACK_DIST = 20f, MIN_ANGLE = 5f;
 
     public RobotController(Grid grid){
         this.grid = grid;
@@ -126,8 +126,13 @@ public class RobotController {
 
                     //Drejer mod target og retter op hvis det er forkert
                     int i = 0;
-                    while (i < 2 && angleCheck(Math.abs(angle), Math.abs(dist))) {
-                        robotSocket.turn(angle);
+                    while (i < 3 && angleCheck(Math.abs(angle), Math.abs(dist))) {
+                        if (!path.isInCross()) {
+                            robotSocket.turn(angle);
+                        }
+                        else {
+                            robotSocket.turnSlow(angle);
+                        }
                         angle = robot.getAngleToTarget();
                         i++;
                     }
@@ -140,7 +145,7 @@ public class RobotController {
                         }
                         else {
                             robotSocket.driveSlowForward(dist
-                                    - grid.translateLengthToMilimeters(robot.getHeight()) / 20 + 1.5f);
+                                    - grid.translateLengthToMilimeters(robot.getHeight()) / 20 + 2f);
                         }
                     }
                     //Ellers køres der alm hastighed mod target
@@ -148,7 +153,7 @@ public class RobotController {
                         robotSocket.driveForward(dist*OFFSET);
 
                         //Tjekker om den har kørt langt nok, hvis ikke, så tilføjes punktet på igen
-                        if (path.isCloseEdge()) {
+                        if (path.isCloseEdge() || path.isInCross()) {
                             dist = (grid.translateLengthToMilimeters(robot.getDistToTarget()) -
                                     grid.translateLengthToMilimeters(robot.getHeight()) / 2f) / 10;
                             if (dist > MIN_DIST) {
@@ -159,7 +164,7 @@ public class RobotController {
                 }
 
                 //Hvis robotten har lavet en manøvre tæt på banderet bakker den
-                if (path.isCloseEdge()){
+                if (path.isCloseEdge() || path.isInCross()){
                     //Bak hurtigt ud hvis man var i et hjørne
                     if (path.isInCorner()){
                         if (path.getB_dir() == 1){
