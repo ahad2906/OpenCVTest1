@@ -166,11 +166,11 @@ public class Controller2 {
         Tooltip.install(originalFrame, new Tooltip("Original frame til banen"));
 
         // Frame til den røde farve i originalFrame (til banen)
-        this.imageViewProperties(this.maskImage, 200);
+        this.imageViewProperties(this.maskImage, 300);
         Tooltip.install(maskImage, new Tooltip("Mask frame (banen)"));
 
         // Frame til morfologisk transformering af maskImage (til banen)
-        this.imageViewProperties(this.morphImage, 200);
+        this.imageViewProperties(this.morphImage, 300);
         Tooltip.install(morphImage, new Tooltip("Morph frame (banen)"));
 
         // Frame til canny output af morphImage (til banen)

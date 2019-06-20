@@ -19,13 +19,13 @@ public class RobotController {
     private Thread t;
     private boolean isTargeting, isDone;
     private ScheduledExecutorService schedule;
-    private final float MIN_DIST = 4f, OFFSET = 0.92f, BACK_DIST = 18f, MIN_ANGLE = 5f;
+    private final float MIN_DIST = 4f, OFFSET = 0.94f, BACK_DIST = 18f, MIN_ANGLE = 5f;
 
-    public RobotController(Grid grid){
+    public RobotController(Grid grid) {
         this.grid = grid;
     }
 
-    public void start(){
+    public void start() {
         //Starter forbindelse til roboten
         robotSocket = new RobotSocket();
 
@@ -36,13 +36,13 @@ public class RobotController {
         this.schedule.scheduleAtFixedRate(runnable, 0, 120, TimeUnit.MILLISECONDS);
     }
 
-    public void update(){
-        if (isDone){
-            try{
-                while (path.size() >= 2){
+    public void update() {
+        if (isDone) {
+            try {
+                while (path.size() >= 2) {
                     robot.setTarget(path.getNext());
 
-                    System.out.println("Target is at "+robot.getTarget());
+                    System.out.println("Target is at " + robot.getTarget());
 
                     //Beregner vinklen til target
                     float angle = robot.getAngleToTarget();
@@ -55,8 +55,7 @@ public class RobotController {
                     while (i < 2 && angleCheck(Math.abs(angle), Math.abs(dist))) {
                         if (i < 1) {
                             robotSocket.turn(angle);
-                        }
-                        else {
+                        } else {
                             robotSocket.turnSlow(angle);
                         }
                         angle = robot.getAngleToTarget();
@@ -64,22 +63,23 @@ public class RobotController {
                     }
 
                     //Hvis path'en er lavere end 2, er det en bold og derfor køres der langsomt
-                    if (path.size() < 2){
+                    if (path.size() < 2) {
                         //Hvis det drejer sig om et hjørne skal der bare køres fuld smader
                         robotSocket.driveSlowForward(dist
-                                    - grid.translateLengthToMilimeters(robot.getHeight()) / 13);
+                                - grid.translateLengthToMilimeters(robot.getHeight()) / 13);
                     }
                     //Ellers køres der alm hastighed mod target
                     else {
-                        robotSocket.driveForward(dist*OFFSET);
+                        robotSocket.driveForward(dist * OFFSET);
 
                         //Tjekker om den har kørt langt nok, hvis ikke, så tilføjes punktet på igen
-                        if (path.isCloseEdge()) {
-                            dist = (grid.translateLengthToMilimeters(robot.getDistToTarget()) -
-                                    grid.translateLengthToMilimeters(robot.getHeight()) / 2f) / 10;
-                            if (dist > MIN_DIST) {
-                                path.add(robot.getTarget());
+                        dist = (grid.translateLengthToMilimeters(robot.getDistToTarget()) -
+                                grid.translateLengthToMilimeters(robot.getHeight()) / 2f) / 10;
+                        if (dist > MIN_DIST - 1) {
+                            if (path.size() < 3) {
+                                robotSocket.driveForward(-5f);
                             }
+                            path.add(robot.getTarget());
                         }
                     }
                 }
@@ -90,8 +90,7 @@ public class RobotController {
                 while (i < 2 && angle > 4) {
                     if (i < 1) {
                         robotSocket.turn(angle);
-                    }
-                    else {
+                    } else {
                         robotSocket.turnSlow(angle);
                     }
                     angle = robot.getAngleToTarget();
@@ -111,22 +110,20 @@ public class RobotController {
 
                 isDone = false;
                 isTargeting = false;
-            }
-            catch (IOException e){
+            } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-        else if (isTargeting) {
+        } else if (isTargeting) {
 
             try {
                 //Sug de bolde
                 robotSocket.suck();
 
                 Vector2D target;
-                while (path.size() >= 2){
+                while (path.size() >= 2) {
                     robot.setTarget(path.getNext());
 
-                    System.out.println("Target is at "+robot.getTarget());
+                    System.out.println("Target is at " + robot.getTarget());
 
                     //Beregner vinklen til target
                     float angle = robot.getAngleToTarget();
@@ -140,12 +137,10 @@ public class RobotController {
                         if (!path.isInCross()) {
                             if (i < 1) {
                                 robotSocket.turn(angle);
-                            }
-                            else {
+                            } else {
                                 robotSocket.turnSlow(angle);
                             }
-                        }
-                        else {
+                        } else {
                             robotSocket.turnSlow(angle);
                         }
                         angle = robot.getAngleToTarget();
@@ -158,15 +153,20 @@ public class RobotController {
                     }
 
                     //Hvis path'en er lavere end 2, er det en bold og derfor køres der langsomt
-                    if (path.size() < 2){
+                    if (path.size() < 2) {
                         //Hvis det drejer sig om et hjørne skal der bare køres fuld smader
-                        if (path.isInCorner()){
+                        if (path.isInCorner()) {
                             robotSocket.driveForward(dist);
                         }
                         //Hvis det drejer sig om en rute til krydset skal vi lige køre mindre fremad
-                        else if (path.isInCross()){
+                        else if (path.isInCross()) {
                             robotSocket.driveSlowForward(dist
-                                    - grid.translateLengthToMilimeters(robot.getHeight()) / 20 - 5f);
+                                    - grid.translateLengthToMilimeters(robot.getHeight()) / 20 - 3f);
+                        }
+                        //Hvis den er tæt på banderet skal vi trække lidt fra
+                        else if (path.isCloseEdge()) {
+                            robotSocket.driveSlowForward(dist
+                                    - grid.translateLengthToMilimeters(robot.getHeight()) / 20 - 1.6f);
                         }
                         //Ellers kør normal langsom afstand
                         else {
@@ -176,7 +176,7 @@ public class RobotController {
                     }
                     //Ellers køres der alm hastighed mod target
                     else {
-                        robotSocket.driveForward(dist*OFFSET);
+                        robotSocket.driveForward(dist * OFFSET);
 
                         //Tjekker om den har kørt langt nok, hvis ikke, så tilføjes punktet på igen
                         if (path.isCloseEdge() || path.isInCross() || path.isInCorner()) {
@@ -190,13 +190,12 @@ public class RobotController {
                 }
 
                 //Hvis robotten har lavet en manøvre tæt på banderet bakker den
-                if (path.isCloseEdge() || path.isInCross() || path.isInCorner()){
+                if (path.isCloseEdge() || path.isInCross() || path.isInCorner()) {
                     //Bak hurtigt ud hvis man var i et hjørne
-                    if (path.isInCorner()){
-                        if (path.getB_dir() == 1){
+                    if (path.isInCorner()) {
+                        if (path.getB_dir() == 1) {
                             robotSocket.backLeft();
-                        }
-                        else {
+                        } else {
                             robotSocket.backRight();
                         }
                     }
@@ -213,27 +212,27 @@ public class RobotController {
         }
     }
 
-    private boolean angleCheck(float angle, float dist){
+    private boolean angleCheck(float angle, float dist) {
         return (dist < MIN_DIST && angle > MIN_ANGLE) || angle > 1;
     }
 
-    public void setRobot(Robot robot){
+    public void setRobot(Robot robot) {
         this.robot = robot;
     }
 
-    public void target(@NotNull Path path){
-        if (!isTargeting && robot != null){
+    public void target(@NotNull Path path) {
+        if (!isTargeting && robot != null) {
             this.path = path;
             isDone = path.isGoal();
             isTargeting = true;
         }
     }
 
-    public boolean isTargeting(){
+    public boolean isTargeting() {
         return isTargeting;
     }
 
-    public void close(){
+    public void close() {
         try {
             robotSocket.close();
         } catch (IOException e) {

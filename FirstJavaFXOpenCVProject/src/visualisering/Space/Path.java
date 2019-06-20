@@ -65,13 +65,13 @@ public class Path implements IDrawable {
         //Definerer de forskellige afstands variabler
         float d = grid.translateLengthToScale(160), space = grid.translateLengthToScale(80),
                 space_corner = grid.translateLengthToScale(120);
-        float norm_d = grid.translateLengthToScale(200), corner_d = grid.translateLengthToScale(340);
-        int scale = 10;
+        float norm_d = grid.translateLengthToScale(200), corner_d = grid.translateLengthToScale(360);
+        int scale = 8;
 
         if (obj instanceof Mål) {
             isGoal = true;
-            attackPoint = Vector2D.RIGHT().scale(grid.translateLengthToScale(100)).add(target);
-            path.add(1, attackPoint);
+            /*attackPoint = Vector2D.RIGHT().scale(grid.translateLengthToScale(100)).add(target);
+            path.add(1, attackPoint);*/
             attackPoint = Vector2D.RIGHT().scale(grid.translateLengthToScale(300)).add(target);
         } else {
             //Tjekker hvor bolden befinder sig

@@ -28,7 +28,7 @@ public class VisuController {
     private long lastTime;
     private Controller2 otherController;
     private RobotController robotController;
-    private boolean started = false, wasAtGoal;
+    private boolean started = false, wasGoal;
     private AnimationTimer animationTimer;
     private Text timerTxt;
     private long time, prevTime;
@@ -117,7 +117,7 @@ public class VisuController {
                 Vector2D v = grid.translatePos(new Vector2D((float) p.x, (float) p.y));
                 //Hvis bolden er indenfor banen tilføjes denne til listen
                 if (v.getY() < grid.HEIGHT && v.getY() > 0 && v.getX() < grid.WIDTH && v.getX() > 0
-                        && grid.translateLengthToMilimeters(Vector2D.Distance(v, map.getRobot().getPos())) > 120) {
+                        && grid.translateLengthToMilimeters(Vector2D.Distance(v, map.getRobot().getPos())) > 150) {
                     ballPos.add(v);
                 }
             }
@@ -148,15 +148,18 @@ public class VisuController {
         if (balls.length <= 0) {
             tries++;
             if (tries > 20) {
-                if (wasAtGoal) {
-                    robotController.close();
-                    doCount = false;
-                } else {
-                    path.setTarget(map.getLeftgoal());
+                if (wasGoal){
+                    stopRobot();
                 }
+                path = new Path(map);
+                path.setColor(Colors.PATH);
+                path.setTarget(map.getLeftgoal());
+                map.addDebugObject(path);
+                wasGoal = true;
             }
             return;
         }
+        wasGoal = false;
         tries = 0;
 
         //Finder den korteste sti
@@ -307,9 +310,9 @@ public class VisuController {
     }
 
     public void stopRobot() {
+        doCount = false;
         robotController.close();
         robotController = null;
-        doCount = false;
     }
 
     public void startRobot() {
