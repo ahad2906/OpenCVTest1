@@ -740,6 +740,8 @@ public class Controller2 {
                     Imgproc.erode(detectedEdges, detectedEdges, kernel);
                     Imgproc.dilate(detectedEdges, detectedEdges, kernel);
 
+                    Imgproc.GaussianBlur(grayImage, detectedEdges, new Size(3,3), 2, 2);
+
 
 
                     // using Canny's output as a mask, display the result
