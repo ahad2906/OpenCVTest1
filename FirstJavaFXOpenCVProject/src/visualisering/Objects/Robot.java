@@ -56,16 +56,6 @@ public class Robot extends SpaceObject implements IMovableObject, IDrawable, Upd
         context.setStroke(color.invert());
         context.setLineWidth(height/4);
         context.strokeLine(position.getX(),position.getY(),position.getX()+width/2,position.getY());
-        /*context.fillPolygon(
-                new double[]{
-                        position.getX()-width/2,
-                        position.getX()-width/2,
-                        position.getX()+width/2},
-                new double[]{
-                        position.getY()-height/2,
-                        position.getY()+height/2,
-                        position.getY()},
-                3);*/
 
         context.restore();
     }

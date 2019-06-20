@@ -64,10 +64,6 @@ public class VisuController {
         timerTxt.setColor(Color.WHITE);
         map.addDebugObject(timerTxt);
 
-        //RobotController
-        /*robotController = new RobotController(grid);
-        robotController.start();*/
-
         //Skab objekterne
         createObjects(grid);
         //createPath();
@@ -186,21 +182,6 @@ public class VisuController {
     }
 
     private void createObjects(Grid grid) {
-        /*//Nodes
-        Node[][] nodes = new Node[(int)grid.CELLS_HOR][(int)grid.CELLS_VER];
-        for (int i = 0; i < nodes.length; i++){
-            for (int j = 0; j < nodes[i].length; j++){
-                float x, y;
-                x = grid.CELL_SPACING.getX()*i + grid.CELL_SPACING.getX()/2;
-                y = grid.CELL_SPACING.getY()*j + grid.CELL_SPACING.getY()/2;
-                nodes[i][j] = new Node(x, y);
-                if (Debug.DEBUG){
-                    nodes[i][j].setColor(Colors.NODE);
-                    map.addDebugObject(nodes[i][j]);
-                }
-            }
-        }
-        map.setNodes(nodes);*/
 
         //Goals
         Mål goal = new Mål();
@@ -305,12 +286,6 @@ public class VisuController {
                 Vector2D.Distance(position, map.getRobot().getPos()) < grid.translateLengthToScale(150))
             return cross;
 
-        /*if (cross.getPos() != null &&
-                //Hvis krydset har flyttet sig mere end 150mm
-                Vector2D.Distance(cross.getPos(), position) > grid.translateLengthToScale(150)){
-            return cross;
-        }*/
-
         //Sætter hjørnerne
         cross.setCorners(vA);
 
@@ -319,8 +294,6 @@ public class VisuController {
         cross.setHeight(height);
         cross.setPos(position);
         cross.setRotation(rotation);
-
-        //cross.setPoints(vA, 0, grid.translateLengthToScale(250));
 
         return cross;
     }

@@ -212,21 +212,6 @@ public class Path implements IDrawable {
 
     }
 
-    /*private boolean goesThroughCross(Vector2D pos, Vector2D target, Vector2D cross){
-        float a, b, c, s, A, h;
-        a = Vector2D.Distance(pos, cross);
-        b = Vector2D.Distance(cross, target);
-        c = Vector2D.Distance(pos, target);
-
-        s = (a+b+c)/2;
-        A = (float)Math.sqrt(s*(s-a)*(s-b)*(s-c));
-        h = 2*A/c;
-
-        System.out.println("Path, h-val: "+h);
-
-        return h < 65;
-    }*/
-
     public float getLength() {
         if (path.size() < 2) //Return if path size is lower than 2.
             return 0;

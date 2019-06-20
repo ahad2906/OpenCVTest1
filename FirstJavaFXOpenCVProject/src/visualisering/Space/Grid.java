@@ -1,6 +1,5 @@
 package visualisering.Space;
 
-import Jama.Matrix;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import visualisering.Debug;
@@ -103,7 +102,6 @@ public class Grid implements IDrawable {
         pos = Vector2D.CopyOf(pos)
                 .subtract(offset) //Offset the point
                 .scale(scale); //Scale to actual grid size
-        //.clamp(new Vector2D(0,0), new Vector2D(WIDTH, HEIGHT)); //Clamp inside grid bounds
         return pos;
     }
 
