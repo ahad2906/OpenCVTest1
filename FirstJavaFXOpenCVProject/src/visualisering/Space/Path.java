@@ -81,22 +81,26 @@ public class Path implements IDrawable {
             } else if (Vector2D.Distance(target, Vector2D.ZERO()) <= space_corner) {
                 attackPoint = Vector2D.RIGHT().scale(scale).add(Vector2D.DOWN()).toUnit().scale(corner_d);
                 target.add(correction);
+                attackPoint.add(target);
                 inCorner = true;
                 b_dir = 1;
                 //Tæt på nedre venstre hjørne
             } else if (Vector2D.Distance(target, new Vector2D(0, grid.HEIGHT)) <= space_corner) {
                 attackPoint = Vector2D.RIGHT().scale(scale).add(Vector2D.UP()).toUnit().scale(corner_d);
                 target.subtract(correction);
+                attackPoint.add(target);
                 inCorner = true;
                 //Tæt på øvre højre hjørne
             } else if (Vector2D.Distance(target, new Vector2D(grid.WIDTH, 0)) <= space_corner) {
                 attackPoint = Vector2D.LEFT().scale(scale).add(Vector2D.DOWN()).toUnit().scale(corner_d);
                 target.add(correction);
+                attackPoint.add(target);
                 inCorner = true;
                 //Tæt på nedre højre hjørne
             } else if (Vector2D.Distance(target, new Vector2D(grid.WIDTH, grid.HEIGHT)) <= space_corner) {
                 attackPoint = Vector2D.LEFT().scale(scale).add(Vector2D.UP()).toUnit().scale(corner_d);
                 target.subtract(correction);
+                attackPoint.add(target);
                 inCorner = true;
                 b_dir = 1;
             } else if (target.getX() < space) { //Tæt på venstre bander
@@ -143,7 +147,7 @@ public class Path implements IDrawable {
         //Hvis stien går igennem krydset
         if (h < grid.translateLengthToScale(200) && (c >= a || ct >= a)) {
             //Er der tale om en bold tæt på banderet?
-            if (isCloseEdge || isGoal || inCross) {
+            if (isCloseEdge || isGoal || inCross || inCorner) {
                 path.add(1, attackPoint); //Tilføj det tidligere udregnet angrebspunkt
             } else {
                 attackPoint = target; //Sæt angræbspunkt til boldens position
@@ -172,7 +176,7 @@ public class Path implements IDrawable {
 
             //Hvis bolden ikke er tæt på kanten, beregnes et nyt angrebspunkt med
             // udgangspunkt i linjen fra detour punktet til bolden
-            if (!isCloseEdge && !isGoal && !inCross) {
+            if (!isCloseEdge && !isGoal && !inCross && !inCorner) {
                 float D = Vector2D.Distance(detour, target);
                 x1 = detour.getX();
                 x2 = target.getX();

@@ -19,7 +19,7 @@ public class RobotController {
     private Thread t;
     private boolean isTargeting, isDone;
     private ScheduledExecutorService schedule;
-    private final float MIN_DIST = 3f, OFFSET = 0.95f, BACK_DIST = 18f, MIN_ANGLE = 5f;
+    private final float MIN_DIST = 4f, OFFSET = 0.92f, BACK_DIST = 18f, MIN_ANGLE = 5f;
 
     public RobotController(Grid grid){
         this.grid = grid;
