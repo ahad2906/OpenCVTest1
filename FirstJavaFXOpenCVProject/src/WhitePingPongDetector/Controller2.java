@@ -74,7 +74,7 @@ public class Controller2 {
     //Her er målene til de diverse objekter til systemet/banen/boldene/robotten
 
     //double camHeight = 171.9; // SKAL måles hver gang der testes med nyt opstilling
-    double camHeight = 168; // SKAL måles hver gang der testes med nyt opstilling
+    double camHeight = 167.8; // SKAL måles hver gang der testes med nyt opstilling
 
     double objectHeightBolde = 3.9;//3.7-4 cm
 
@@ -295,13 +295,14 @@ public class Controller2 {
                     // Erode  = elementer af størrelse (x*x)pixel (gør objekt mindre)
                     Mat morhpOutput = new Mat();
                     Mat dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(4, 4));
+                    Mat dilateElement2 = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(4, 4));
                     Mat erodeElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(4, 4));
 
                     // Forstørre elementet x gange
                     Imgproc.dilate(hueStart, morhpOutput, dilateElement); // 1. gang
                     Imgproc.erode(morhpOutput, morhpOutput, erodeElement); // 2. gang
                     Imgproc.dilate(morhpOutput, morhpOutput, dilateElement); // 2. gang
-                    Imgproc.dilate(morhpOutput, morhpOutput, dilateElement); // 2. gang
+                    Imgproc.dilate(morhpOutput, morhpOutput, dilateElement2); // 2. gang
                     Imgproc.erode(morhpOutput, morhpOutput, erodeElement); // 2. gang
 
 

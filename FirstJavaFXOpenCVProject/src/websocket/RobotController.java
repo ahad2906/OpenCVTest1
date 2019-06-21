@@ -19,7 +19,7 @@ public class RobotController {
     private Thread t;
     private boolean isTargeting, isDone;
     private ScheduledExecutorService schedule;
-    private final float MIN_DIST = 4f, OFFSET = 0.94f, BACK_DIST = 18f, MIN_ANGLE = 5f;
+    private final float MIN_DIST = 3.8f, OFFSET = 0.94f, BACK_DIST = 18f, MIN_ANGLE = 5f;
 
     public RobotController(Grid grid) {
         this.grid = grid;
@@ -53,6 +53,7 @@ public class RobotController {
                     //Drejer mod target og retter op hvis det er forkert
                     int i = 0;
                     while (i < 2 && angleCheck(Math.abs(angle), Math.abs(dist))) {
+                        angle = robot.getAngleToTarget();
                         if (i < 1) {
                             robotSocket.turn(angle);
                         } else {
@@ -87,7 +88,7 @@ public class RobotController {
                 //Beregner vinklen til target
                 float angle = robot.getAngleToTarget();
                 int i = 0;
-                while (i < 2 && angle > 4) {
+                while (i < 4 && angle > 3) {
                     if (i < 1) {
                         robotSocket.turn(angle);
                     } else {
@@ -101,12 +102,12 @@ public class RobotController {
                 robotSocket.blow();
 
                 try {
-                    Thread.sleep(1500);
+                    Thread.sleep(1200);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
                 //
-                robotSocket.driveBackward(15);
+                //robotSocket.driveBackward(15);
 
                 isDone = false;
                 isTargeting = false;
@@ -132,8 +133,9 @@ public class RobotController {
                     float dist = grid.translateLengthToMilimeters(robot.getDistToTarget()) / 10;
 
                     //Drejer mod target og retter op hvis det er forkert
-                    int i = 0;
-                    while (i < 2 && angleCheck(Math.abs(angle), Math.abs(dist))) {
+                    int i = 0, max;
+                    max = (path.isInCorner())? 3 : 2;
+                    while (i < max && angleCheck(Math.abs(angle), Math.abs(dist))) {
                         if (!path.isInCross()) {
                             if (i < 1) {
                                 robotSocket.turn(angle);
@@ -161,7 +163,7 @@ public class RobotController {
                         //Hvis det drejer sig om en rute til krydset skal vi lige køre mindre fremad
                         else if (path.isInCross()) {
                             robotSocket.driveSlowForward(dist
-                                    - grid.translateLengthToMilimeters(robot.getHeight()) / 20 - 4f);
+                                    - grid.translateLengthToMilimeters(robot.getHeight()) / 20 - 4.2f);
                         }
                         //Hvis den er tæt på banderet skal vi trække lidt fra
                         else if (path.isCloseEdge()) {
@@ -182,7 +184,12 @@ public class RobotController {
                         if (path.isCloseEdge() || path.isInCross() || path.isInCorner()) {
                             dist = (grid.translateLengthToMilimeters(robot.getDistToTarget()) -
                                     grid.translateLengthToMilimeters(robot.getHeight()) / 2f) / 10;
-                            if (dist > MIN_DIST) {
+                            if (path.isCloseEdge() || path.isInCross()){
+                                if (dist > 2.5f){
+                                    path.add(robot.getTarget());
+                                }
+                            }
+                            else if (dist > MIN_DIST) {
                                 path.add(robot.getTarget());
                             }
                         }
@@ -194,8 +201,10 @@ public class RobotController {
                     //Bak hurtigt ud hvis man var i et hjørne
                     if (path.isInCorner()) {
                         if (path.getB_dir() == 1) {
+                            robotSocket.turn(8);
                             robotSocket.backLeft();
                         } else {
+                            robotSocket.turn(-8);
                             robotSocket.backRight();
                         }
                     }

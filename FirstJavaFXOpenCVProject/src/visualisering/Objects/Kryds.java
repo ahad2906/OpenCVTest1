@@ -13,11 +13,11 @@ public class Kryds extends SpaceObject implements IDrawable {
     private Vector2D[] corners;
 
     public boolean isInside(Vector2D v){
-        return Vector2D.Distance(position, v) <= width/1.5;
+        return Vector2D.Distance(position, v) <= width/1.6;
     }
 
-    public Vector2D[] getAttackPoint(Vector2D target){
-        float scale = 3f;
+    public Vector2D[] getAttackPoint(Vector2D target, float scale){
+        //float scale = 3.5f;
         Vector2D[] vA = {
                 Vector2D.Middle(corners[9],corners[11]).subtract(position).toUnit(),
                 Vector2D.Middle(corners[0],corners[2]).subtract(position).toUnit(),
@@ -27,10 +27,10 @@ public class Kryds extends SpaceObject implements IDrawable {
                 Vector2D.CopyOf(corners[0]).subtract(corners[5]).toUnit(), //3 til 2
                 Vector2D.CopyOf(corners[3]).subtract(corners[8]).toUnit(), //6 til 5
                 Vector2D.CopyOf(corners[6]).subtract(corners[11]).toUnit(), //9 til 8
-                Vector2D.CopyOf(corners[11]).subtract(corners[10]).toUnit().scale(scale).add(corners[11]),
-                Vector2D.CopyOf(corners[2]).subtract(corners[1]).toUnit().scale(scale).add(corners[2]),
-                Vector2D.CopyOf(corners[5]).subtract(corners[4]).toUnit().scale(scale).add(corners[5]),
-                Vector2D.CopyOf(corners[8]).subtract(corners[7]).toUnit().scale(scale).add(corners[8])
+                Vector2D.CopyOf(corners[11]).subtract(corners[10]).toUnit().scale(scale).add(position),
+                Vector2D.CopyOf(corners[2]).subtract(corners[1]).toUnit().scale(scale).add(position),
+                Vector2D.CopyOf(corners[5]).subtract(corners[4]).toUnit().scale(scale).add(position),
+                Vector2D.CopyOf(corners[8]).subtract(corners[7]).toUnit().scale(scale).add(position)
         };
 
         for (Vector2D v : vA){

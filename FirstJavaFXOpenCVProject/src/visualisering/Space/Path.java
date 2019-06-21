@@ -65,7 +65,7 @@ public class Path implements IDrawable {
         //Definerer de forskellige afstands variabler
         float d = grid.translateLengthToScale(160), space = grid.translateLengthToScale(80),
                 space_corner = grid.translateLengthToScale(120);
-        float norm_d = grid.translateLengthToScale(200), corner_d = grid.translateLengthToScale(340);
+        float norm_d = grid.translateLengthToScale(200), corner_d = grid.translateLengthToScale(300);
         float scale = 4.5f;
 
         if (obj instanceof Mål) {
@@ -77,7 +77,8 @@ public class Path implements IDrawable {
             //Tjekker hvor bolden befinder sig
             if (cross.isInside(target)) { //I krydset
                 inCross = true;
-                Vector2D[] points = cross.getAttackPoint(target);
+                Vector2D[] points = cross.getAttackPoint(target,
+                        grid.translateLengthToScale(117)); //Henter attapoint x mm fra krydsets midt
                 attackPoint = points[0];
                 attackPoint.scale(corner_d);
                 attackPoint.add(points[1]);
@@ -164,7 +165,7 @@ public class Path implements IDrawable {
             // skærer igennen linjen mellem robot og angrebspunkt
             A = (float) Math.asin((Math.sin(Math.toRadians(90)) * h) / a);
             b = (float) Math.cos(A) * a;
-            s = grid.translateLengthToScale(300);
+            s = grid.translateLengthToScale(340);
 
             float x1 = pos.getX(), x2 = attackPoint.getX(), y1 = pos.getY(), y2 = attackPoint.getY();
             Vector2D detour = new Vector2D(

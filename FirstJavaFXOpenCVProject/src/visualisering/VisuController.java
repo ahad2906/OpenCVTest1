@@ -147,7 +147,7 @@ public class VisuController {
 
         if (balls.length <= 0) {
             tries++;
-            if (tries > 40) {
+            if (tries > 50) {
                 if (wasGoal){
                     stopRobot();
                 }
