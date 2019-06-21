@@ -19,7 +19,7 @@ import java.util.List;
 public class Grid implements IDrawable {
     public final float WIDTH, HEIGHT, UNIT_SCALE;
     public static final float CELLS_HOR = 9f, CELLS_VER = 7f, GOAL_LEFT = 90f,
-            GOAL_RIGHT = 160, UNIT_WIDTH = 1675, UNIT_HEIGHT = 1210, OFFSET = 1f;
+            GOAL_RIGHT = 160, UNIT_WIDTH = 1667, UNIT_HEIGHT = 1216, OFFSET = 1f;
     private float a, b, c, d, e, f, g, h;
     public final Vector2D CELL_SPACING;
     Vector2D scale, offset;

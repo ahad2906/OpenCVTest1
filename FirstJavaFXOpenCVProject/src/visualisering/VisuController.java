@@ -21,7 +21,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class VisuController {
-    private final int UPDATETIME = 50;
+    private final int UPDATETIME = 30;
     private int nbOfBalls = 1;
     Kort map;
     Path path;
@@ -147,7 +147,7 @@ public class VisuController {
 
         if (balls.length <= 0) {
             tries++;
-            if (tries > 20) {
+            if (tries > 40) {
                 if (wasGoal){
                     stopRobot();
                 }

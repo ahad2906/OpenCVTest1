@@ -33,7 +33,7 @@ public class RobotController {
 
         this.schedule = Executors.newSingleThreadScheduledExecutor();
         // Her sættes framerate (Runnable, initialDelay, framerate, tidsenhed )
-        this.schedule.scheduleAtFixedRate(runnable, 0, 120, TimeUnit.MILLISECONDS);
+        this.schedule.scheduleAtFixedRate(runnable, 0, 60, TimeUnit.MILLISECONDS);
     }
 
     public void update() {
@@ -101,7 +101,7 @@ public class RobotController {
                 robotSocket.blow();
 
                 try {
-                    Thread.sleep(2500);
+                    Thread.sleep(1500);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -166,7 +166,7 @@ public class RobotController {
                         //Hvis den er tæt på banderet skal vi trække lidt fra
                         else if (path.isCloseEdge()) {
                             robotSocket.driveSlowForward(dist
-                                    - grid.translateLengthToMilimeters(robot.getHeight()) / 20 - 1.6f);
+                                    - grid.translateLengthToMilimeters(robot.getHeight()) / 20);
                         }
                         //Ellers kør normal langsom afstand
                         else {
